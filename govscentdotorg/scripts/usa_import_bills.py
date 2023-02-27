@@ -14,29 +14,20 @@ from govscentdotorg.scripts.utils.pattern_iterate import iterate_dir_for_pattern
 def get_bill_meta(zip: ZipFile) -> dict:
     meta = {
         "title": None,
-        "gov_id": None,
         "date": None
     }
     # I haven't seen JSON metadata yet, only XML. If we can get the JSON, maybe use that as parsing should be faster.
-    dip = next(
-        (file for file in zip.filelist if file.filename.endswith('dip.xml')),
+    mods = next(
+        (file for file in zip.filelist if file.filename.endswith('mods.xml')),
         None
     )
-    if dip is not None:
-        root = ET.fromstring(zip.read(dip))
-        mets = root.find('[@LABEL]')
-        print(mets)
-        if mets is not None:
-            meta['title'] = mets.attrib.get('LABEL')
-            meta['gov_id'] = mets.attrib.get('OBJID')
-            mets_hdr = mets.find('*[@CREATEDATE]')
-            if mets_hdr is not None:
-                meta['date'] = dateutil.parser.parse(mets_hdr.attrib.get('CREATEDATE'))
+    if mods is not None:
+        root = ET.fromstring(zip.read(mods))
+        meta['title'] = root.find('./{*}titleInfo/{*}title').text
+        meta['date'] = dateutil.parser.parse(root.find('./{*}originInfo/{*}dateIssued').text)
 
     if meta['title'] is None:
         raise Exception("Could not determine bill title.")
-    if meta['gov_id'] is None:
-        raise Exception("Could not determine bill gov_id.")
     if meta['date'] is None:
         raise Exception("Could not determine bill date.")
     return meta
@@ -56,6 +47,7 @@ def get_bill_html(zip: ZipFile) -> str | None:
 
     return html
 
+
 def run(data_dir):
     if not data_dir:
         raise Exception("--data-dir is required.")
@@ -68,13 +60,13 @@ def run(data_dir):
             continue
         print('Ingesting', package_path)
         zip_file = ZipFile(package_path, 'r')
-        meta = get_bill_meta(zip_file)
-        gov_id = meta.get('gov_id')
-        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id")
+        gov_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number') + bill_dir_info.get('status_code')
+        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
         if not existing_bill:
+            meta = get_bill_meta(zip_file)
             bill = Bill.objects.create(
                 gov="USA",
-                gov_id=meta.get('gov_id'),
+                gov_id=gov_id,
                 title=meta.get('title'),
                 type=bill_dir_info['bill_type'],
                 html=get_bill_html(zip_file),
