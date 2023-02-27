@@ -1,0 +1,3 @@
+# 1. Use an existing model, since we want to determine topic similarity and our bills' content might throw this off...
+# 2. Once we have topics and a way to calculate distance, we can parse our documents and use BERT's find_topics and find min/max/avg topic distance.
+# 3. Topic distances, and distance from bill label, can be used to determine smelliness.
