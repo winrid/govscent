@@ -1,6 +1,7 @@
 from os import scandir, path
 
 
+# Iterate a deep tree structure and return a dict with key->values for each level in the tree
 # example pattern: [congress]/bills/[bill_type]/[bill_type_and_number]/text-versions/[status_code]/[package]
 # not super optimized, goal is simplicity.
 def iterate_dir_for_pattern(input_dir_path: str, pattern: str, depth: int, attributes: dict):
@@ -11,7 +12,7 @@ def iterate_dir_for_pattern(input_dir_path: str, pattern: str, depth: int, attri
         return
     next_dir_pattern = pattern_tokens[depth]
     for entry in scandir(input_dir_path):
-        print(depth, entry.name, next_dir_pattern)
+        # print(depth, entry.name, next_dir_pattern)
         if entry.name.startswith('.'):
             continue
         entry_dir_path = path.join(input_dir_path, entry.name)
