@@ -3,6 +3,7 @@
 # 3. Topic distances, and distance from bill label, can be used to determine smelliness.
 
 from bertopic import BERTopic
+from bertopic.representation import TextGeneration
 
 def get_similarity(model, topic_id_1: int, topic_id_2: int) -> float:
     """Calculate the similarity between two topics.
@@ -25,6 +26,14 @@ def get_similarity(model, topic_id_1: int, topic_id_2: int) -> float:
     topic_embedding_2 = model.topic_embeddings[topic_id_2]
     return model.cosine_similarity([topic_embedding_1], [topic_embedding_2])[0][0]
 
+def describe_topic():
+    prompt = "I have a topic described by the following keywords: [KEYWORDS]. Based on the previous keywords, what is this topic about?"
+
+    # Create your representation model
+    generator = pipeline('text2text-generation', model='google/flan-t5-base')
+    representation_model = TextGeneration(generator, prompt)
+    print(representation_model.extract_topics())
+
 # Load data
 # data = pd.read_csv("news_articles.csv")
 
@@ -32,7 +41,7 @@ def get_similarity(model, topic_id_1: int, topic_id_2: int) -> float:
 model = BERTopic()
 
 # Fit model on data
-topics, _ = model.fit_transform(data["content"])
+topics, _ = model.fit_transform(bill_text)
 
 # Print the most frequent topics
 print(model.get_topic_freq().head())
@@ -42,6 +51,6 @@ topics_repr = model.get_topic(0)
 print(topics_repr[:10])
 
 # Determine similarity between two topics
-similarity = get_similarity(0, 1)
+similarity = get_similarity(model, 0, 1)
 print(similarity)
 
