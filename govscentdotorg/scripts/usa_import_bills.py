@@ -6,7 +6,7 @@ import dateutil.parser
 import xml.etree.ElementTree as ET
 
 from govscentdotorg.models import Bill
-from zipfile import ZipFile
+from zipfile import ZipFile, BadZipFile
 
 from govscentdotorg.scripts.utils.pattern_iterate import iterate_dir_for_pattern
 
@@ -59,20 +59,24 @@ def run(data_dir):
         if package_path is None:
             continue
         print('Checking', package_path)
-        gov_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number') + bill_dir_info.get('status_code')
+        gov_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number') + bill_dir_info.get(
+            'status_code')
         existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
         if not existing_bill:
             print('Ingesting', package_path)
-            zip_file = ZipFile(package_path, 'r')
-            meta = get_bill_meta(zip_file)
-            bill = Bill.objects.create(
-                gov="USA",
-                gov_id=gov_id,
-                title=meta.get('title'),
-                type=bill_dir_info['bill_type'],
-                html=get_bill_html(zip_file),
-                date=meta.get('date')
-            )
-            bill.save()
+            try:
+                zip_file = ZipFile(package_path, 'r')
+                meta = get_bill_meta(zip_file)
+                bill = Bill.objects.create(
+                    gov="USA",
+                    gov_id=gov_id,
+                    title=meta.get('title'),
+                    type=bill_dir_info['bill_type'],
+                    html=get_bill_html(zip_file),
+                    date=meta.get('date')
+                )
+                bill.save()
+            except BadZipFile:
+                print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         else:
             print("Bill exists, skipping...")
