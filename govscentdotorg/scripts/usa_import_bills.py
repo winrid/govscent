@@ -51,6 +51,7 @@ def get_bill_html(zip: ZipFile) -> str | None:
 def run(data_dir):
     if not data_dir:
         raise Exception("--data-dir is required.")
+    count_added = 0
     for bill_dir_info in iterate_dir_for_pattern(data_dir,
                                                  "[congress]/bills/[bill_type]/[bill_type_and_number]/text-versions/[status_code]/[package]",
                                                  0, {}):
@@ -76,7 +77,9 @@ def run(data_dir):
                     date=meta.get('date')
                 )
                 bill.save()
+                count_added = count_added + 1
             except BadZipFile:
                 print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         else:
             print("Bill exists, skipping...")
+    print(f'Added {count_added} bills.')
