@@ -59,12 +59,12 @@ def run(data_dir):
         package_path = bill_dir_info.get('package')
         if package_path is None:
             continue
-        print('Checking', package_path)
         gov_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number') + bill_dir_info.get(
             'status_code')
+        print('Checking', gov_id, package_path)
         existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
         if not existing_bill:
-            print('Ingesting', package_path, bill_dir_info)
+            print('Ingesting', gov_id, package_path, bill_dir_info)
             try:
                 zip_file = ZipFile(package_path, 'r')
                 meta = get_bill_meta(zip_file)
