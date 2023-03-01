@@ -55,7 +55,7 @@ def run(data_dir):
     for bill_dir_info in iterate_dir_for_pattern(data_dir,
                                                  "[congress]/bills/[bill_type]/[bill_type_and_number]/text-versions/[status_code]/[package]",
                                                  0, {}):
-        print(bill_dir_info)
+        # print(bill_dir_info)
         package_path = bill_dir_info.get('package')
         if package_path is None:
             continue
@@ -64,7 +64,7 @@ def run(data_dir):
             'status_code')
         existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
         if not existing_bill:
-            print('Ingesting', package_path)
+            print('Ingesting', package_path, bill_dir_info)
             try:
                 zip_file = ZipFile(package_path, 'r')
                 meta = get_bill_meta(zip_file)
