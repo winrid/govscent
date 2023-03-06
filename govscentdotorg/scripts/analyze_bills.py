@@ -1,11 +1,14 @@
-# 1. Use an existing model, since we want to determine topic similarity and our bills' content might throw this off...
+# 1. Ideally we use an existing model, since we want to determine topic similarity and our bills' content might throw this off...
+#   However, we are having trouble getting more than 0/1 topics from a bill with BERT using the newsgroups model, so for now we are trained off the bills themselves...
 # 2. Once we have topics and a way to calculate distance, we can parse our documents and use BERT's find_topics and find min/max/avg topic distance.
 # 3. Topic distances, and distance from bill label, can be used to determine smelliness.
 
 from bertopic import BERTopic
 from bertopic.representation import TextGeneration
+from hdbscan import HDBSCAN
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.metrics.pairwise import cosine_similarity
+from umap import UMAP
 
 from govscentdotorg.models import Bill
 
@@ -32,20 +35,38 @@ def describe_topic():
     representation_model = TextGeneration(generator, prompt)
     print(representation_model.extract_topics())
 
+def get_training_docs():
+    # return fetch_20newsgroups(subset='all')['data']
+    # Yes, this means all the bill text needs to fit in memory. It takes around 16gb per 50k bills.
+    bills = Bill.objects.all().only("text")[:50_000]
+    print(f'Training with {len(bills)} bills.')
+    bill_texts = []
+    for bill in bills:
+        bill_texts.append(bill.text)
+    return bill_texts
+
+
 def get_trained_model():
-    name = ".model_newsgroups_0"
+    # name = ".model_newsgroups_0"
+    name = ".model_bills_0"
     try:
         return BERTopic.load(name)
     except FileNotFoundError:
         # Instantiate BERTopic with default parameters
         print("Instantiating BERTopic...")
+        # We can tune n_neighbors to get a different # of topics, if we aren't getting enough.
+        umap_model = UMAP(n_neighbors=15)
+        hdbscan_model = HDBSCAN(min_cluster_size=20, metric='euclidean', prediction_data=True)
         model = BERTopic(
+            umap_model=umap_model,
+            hdbscan_model=hdbscan_model,
             # Since we're analyzing one document at a time, we need a small topic size.
-            min_topic_size=3
+            min_topic_size=2,
+            n_gram_range=(1, 2),
         )
 
         print("Getting model...")
-        docs = fetch_20newsgroups(subset='all')['data']
+        docs = get_training_docs()
         print("Training model...")
         trained_model = model.fit(docs)
         trained_model.save(name)
@@ -54,10 +75,14 @@ def get_trained_model():
 def run():
     trained_model = get_trained_model()
 
+    fig = trained_model.visualize_topics()
+    fig.write_html("topics.html")
+
     print("Getting bills...")
     # In the future we will only analyze things that have not yet been analyzed.
     # bills = Bill.objects.all()[0:10]
-    bills = [Bill.objects.get(pk=8581)]
+    # bills = [Bill.objects.get(pk=8581)]
+    bills = [Bill.objects.get(pk=27192)]
     print(f'Got {len(bills)} bills.')
 
     for bill in bills:
