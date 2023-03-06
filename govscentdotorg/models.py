@@ -41,9 +41,8 @@ class Bill(models.Model):
     gov_id = models.CharField(max_length=1000, verbose_name="Bill's Government Identifier")
     title = models.TextField()
     type = models.CharField(max_length=50)
-    # For now, we just store raw bill HTML. We don't do parsing often, so in the interest of space, we store only one version (the HTML)
-    # and extract the text when we need to.
-    html = models.TextField()
+    text = models.TextField(default="")
+    html = models.TextField(default="")
     date = models.DateField()
     last_analyzed_at = models.DateTimeField(default=None, null=True)
 

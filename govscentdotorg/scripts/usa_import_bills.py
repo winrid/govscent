@@ -1,6 +1,9 @@
 # Import's Bills from the US Congress scraped via the Congress tool: https://github.com/unitedstates/congress
 # We currently only store and analyze the most recent version.
+# It takes two arguments: <input_data_dir> <True/False: Whether to update all bill text>
+import subprocess
 from encodings.utf_8 import decode
+from shutil import rmtree
 
 import dateutil.parser
 import xml.etree.ElementTree as ET
@@ -11,18 +14,18 @@ from zipfile import ZipFile, BadZipFile
 from govscentdotorg.scripts.utils.pattern_iterate import iterate_dir_for_pattern
 
 
-def get_bill_meta(zip: ZipFile) -> dict:
+def get_bill_meta(zipfile: ZipFile) -> dict:
     meta = {
         "title": None,
         "date": None
     }
     # I haven't seen JSON metadata yet, only XML. If we can get the JSON, maybe use that as parsing should be faster.
     mods = next(
-        (file for file in zip.filelist if file.filename.endswith('mods.xml')),
+        (file for file in zipfile.filelist if file.filename.endswith('mods.xml')),
         None
     )
     if mods is not None:
-        root = ET.fromstring(zip.read(mods))
+        root = ET.fromstring(zipfile.read(mods))
         meta['title'] = root.find('./{*}titleInfo/{*}title').text
         meta['date'] = dateutil.parser.parse(root.find('./{*}originInfo/{*}dateIssued').text)
 
@@ -33,25 +36,78 @@ def get_bill_meta(zip: ZipFile) -> dict:
     return meta
 
 
-def get_bill_html(zip: ZipFile) -> str | None:
-    html = None
-
+def get_bill_text(zipfile: ZipFile) -> str | None:
     html_file = next(
         # I only see .htm, but add .html just in case.
-        (file for file in zip.filelist if file.filename.endswith('.htm') or file.filename.endswith('.html')),
+        (file for file in zipfile.filelist if file.filename.endswith('.htm') or file.filename.endswith('.html')),
         None
     )
 
     if html_file is not None:
-        html = decode(zip.read(html_file))[0]
+        pre_wrapped_html = decode(zipfile.read(html_file))[0]
+        # Find bill text after beginning section etc
+        # We look for text after the 2nd _______________________________________________________________________ and
+        # before the </pre>
+        bill_body = ""
+        separator = "_______" # shortened as optimization
+        found_header_start = False
+        found_header_end = False
+        for line in pre_wrapped_html.splitlines():
+            if found_header_end:
+                if line.startswith("</pre"):
+                    break
+                else:
+                    bill_body += line + "\n"
+            elif found_header_start:
+                if line.startswith(separator):
+                    found_header_end = True
+            elif line.startswith(separator):
+                found_header_start = True
+        return bill_body
+    return None
 
-    return html
+
+def get_bill_html(zipfile: ZipFile) -> str | None:
+    pdf_file = next(
+        # I only see .htm, but add .html just in case.
+        (file for file in zipfile.filelist if file.filename.endswith('.pdf')),
+        None
+    )
+
+    if pdf_file is not None:
+        working_dir = "/tmp/bills_working"
+        pdf_file_path = zipfile.extract(pdf_file, path=working_dir)
+
+        command = f'pdftohtml "{pdf_file_path}" -s -noframes -i -nomerge -nodrm -stdout'
+        html = subprocess.getoutput(command)
+
+        # save disk space, keep content in zip files most of the time.
+        rmtree(working_dir)
+
+        # We only want the HTML inside the <body> tag. Everything in the <head> are not needed.
+        # We could replace this with a regex, it'll probably be faster. DOM libraries are slow, and our
+        # use case is simple. This is "fast enough" for now.
+        in_body = False
+        body_html = ""
+        for line in html.splitlines():
+            if in_body:
+                if line.startswith("</body"):
+                    break
+                else:
+                    body_html += line + "\n"
+            elif line.startswith("<body"):
+                in_body = True
+        return body_html
+
+    return None
 
 
-def run(data_dir):
+def run(data_dir: str, update_all_text: str):
     if not data_dir:
         raise Exception("--data-dir is required.")
+    should_update_all_text = update_all_text == 'True'
     count_added = 0
+    count_updated = 0
     for bill_dir_info in iterate_dir_for_pattern(data_dir,
                                                  "[congress]/bills/[bill_type]/[bill_type_and_number]/text-versions/[status_code]/[package]",
                                                  0, {}):
@@ -73,13 +129,25 @@ def run(data_dir):
                     gov_id=gov_id,
                     title=meta.get('title'),
                     type=bill_dir_info['bill_type'],
+                    text=get_bill_text(zip_file),
                     html=get_bill_html(zip_file),
                     date=meta.get('date')
                 )
                 bill.save()
-                count_added = count_added + 1
+                count_added += 1
             except BadZipFile:
                 print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         else:
-            print("Bill exists, skipping...")
-    print(f'Added {count_added} bills.')
+            if should_update_all_text:
+                print("Updating bill text and HTML...")
+                zip_file = ZipFile(package_path, 'r')
+                text = get_bill_text(zip_file)
+                html = get_bill_html(zip_file)
+                # print(text, html)
+                existing_bill.text = text
+                existing_bill.html = html
+                existing_bill.save()
+                count_updated += 1
+            else:
+                print("Bill exists, skipping...")
+    print(f'Added {count_added} bills. Updated {count_updated} bills text.')
