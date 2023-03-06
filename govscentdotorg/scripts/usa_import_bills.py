@@ -1,6 +1,6 @@
 # Import's Bills from the US Congress scraped via the Congress tool: https://github.com/unitedstates/congress
 # We currently only store and analyze the most recent version.
-# It takes two arguments: <input_data_dir> <True/False: Whether to update all bill text>
+# It takes arguments: <input_data_dir> <True/False: Whether to update all bill text> <True/False: Whether to update all bill html>
 import subprocess
 from encodings.utf_8 import decode
 from shutil import rmtree
@@ -46,24 +46,27 @@ def get_bill_text(zipfile: ZipFile) -> str | None:
     if html_file is not None:
         pre_wrapped_html = decode(zipfile.read(html_file))[0]
         # Find bill text after beginning section etc
+        return pre_wrapped_html.replace("<html><body><pre>", "").replace("</pre></body></html>", "")
+        # The below implementation was an attempt to extract text from different sections, but it does not work yet.
+        # The bill format is very inconsistent. Examples - compare 114hr208eas (no separators) vs 114sconres16rfh (section separators)
         # We look for text after the 2nd _______________________________________________________________________ and
         # before the </pre>
-        bill_body = ""
-        separator = "_______" # shortened as optimization
-        found_header_start = False
-        found_header_end = False
-        for line in pre_wrapped_html.splitlines():
-            if found_header_end:
-                if line.startswith("</pre"):
-                    break
-                else:
-                    bill_body += line + "\n"
-            elif found_header_start:
-                if line.startswith(separator):
-                    found_header_end = True
-            elif line.startswith(separator):
-                found_header_start = True
-        return bill_body
+        # bill_body = ""
+        # separator = "_______" # shortened as optimization
+        # found_header_start = False
+        # found_header_end = False
+        # for line in pre_wrapped_html.splitlines():
+        #     if found_header_end:
+        #         if line.startswith("</pre"):
+        #             break
+        #         else:
+        #             bill_body += line + "\n"
+        #     elif found_header_start:
+        #         if line.startswith(separator):
+        #             found_header_end = True
+        #     elif line.startswith(separator):
+        #         found_header_start = True
+        # return bill_body
     return None
 
 
@@ -102,10 +105,11 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
     return None
 
 
-def run(data_dir: str, update_all_text: str):
+def run(data_dir: str, update_all_text: str, update_all_html: str):
     if not data_dir:
         raise Exception("--data-dir is required.")
     should_update_all_text = update_all_text == 'True'
+    should_update_all_html = update_all_html == 'True'
     count_added = 0
     count_updated = 0
     for bill_dir_info in iterate_dir_for_pattern(data_dir,
@@ -138,15 +142,19 @@ def run(data_dir: str, update_all_text: str):
             except BadZipFile:
                 print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         else:
-            if should_update_all_text:
-                print("Updating bill text and HTML...")
+            if should_update_all_text or should_update_all_html:
                 zip_file = ZipFile(package_path, 'r')
-                text = get_bill_text(zip_file)
-                html = get_bill_html(zip_file)
-                # print(text, html)
-                existing_bill.text = text
-                existing_bill.html = html
+                if should_update_all_text:
+                    print("Updating bill text...")
+                    text = get_bill_text(zip_file)
+                    existing_bill.text = text
+
+                if should_update_all_html:
+                    print("Updating bill html...")
+                    html = get_bill_html(zip_file)
+                    existing_bill.html = html
                 existing_bill.save()
+
                 count_updated += 1
             else:
                 print("Bill exists, skipping...")
