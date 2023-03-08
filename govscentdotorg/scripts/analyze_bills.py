@@ -19,7 +19,7 @@ def clean_text(lst):
     cleaned_text = []
     stopwords_set = set(stopwords.words("english"))
 
-    ## Text Cleaning (Removing Punctuations, Stopwords, Tokenization and Lemmatization)
+    # Text Cleaning (Removing Punctuations, Stopwords, Tokenization and Lemmatization)
     for text in lst:
         text = str(text).lower()
         text = re.sub(r'[^\w ]+', "", text)
@@ -29,7 +29,7 @@ def clean_text(lst):
     return cleaned_text
 
 
-def make_biagram(data,tokens):
+def make_biagram(data: [str], tokens: [str]):
     bigram = gensim.models.Phrases(data, min_count=5, threshold=100) # higher threshold fewer phrases.
     bigram_mod = gensim.models.phrases.Phraser(bigram)
     return [bigram_mod[doc] for doc in tokens]
@@ -40,8 +40,8 @@ def topic_modeling(data: [str]):
     # Tokens
     tokens = []
     for text in data:
-        text = word_tokenize(text)
-        tokens.append(text)
+        text_tokens = word_tokenize(text)
+        tokens.append(text_tokens)
 
     # Make Biagrams
     tokens = make_biagram(data=data, tokens=tokens)
@@ -53,13 +53,13 @@ def topic_modeling(data: [str]):
     doc_term_matrix = [dictionary.doc2bow(doc) for doc in tokens]
 
     # Training The LDA Model
-    lda_model = gensim.models.LdaModel(doc_term_matrix,   ## Document Term Matrix
-                                       num_topics = 100,     ## Number of Topics
-                                       id2word = dictionary,     ## Word and Frequency Dictionary
-                                       passes = 10,        ## Number of passes throw the corpus during training (similar to epochs in neural networks)
-                                       chunksize=10,       ## Number of documents to be used in each training chunk
-                                       update_every=1,     ## Number of documents to be iterated through for each update.
-                                       alpha='auto',       ## number of expected topics that expresses
+    lda_model = gensim.models.LdaModel(doc_term_matrix,   # Document Term Matrix
+                                       num_topics = 100,     # Number of Topics
+                                       id2word = dictionary,     # Word and Frequency Dictionary
+                                       passes = 10,        # Number of passes throw the corpus during training (similar to epochs in neural networks)
+                                       chunksize=10,       # Number of documents to be used in each training chunk
+                                       update_every=1,     # Number of documents to be iterated through for each update.
+                                       alpha='auto',       # number of expected topics that expresses
                                        per_word_topics=True,
                                        random_state=42)
 
@@ -68,8 +68,15 @@ def topic_modeling(data: [str]):
         print("Topic: {} \nWords: {}".format(idx, topic ))
         print("\n")
 
-    print(lda_model.get_document_topics(dictionary.doc2bow(data[0])))
-
+    testing_bill = Bill.objects.get(pk=72770)
+    bow = dictionary.doc2bow([testing_bill.text])
+    document_topics = lda_model.get_document_topics(bow)
+    # print(document_topics)
+    for topic, relevance in document_topics:
+        print(topic)
+        print(relevance)
+        print('----')
+        print(lda_model.print_topic(topic))
 
 def get_training_docs():
     # return fetch_20newsgroups(subset='all')['data']

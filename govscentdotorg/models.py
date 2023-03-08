@@ -27,6 +27,7 @@ class BillSmell(models.Model):
     def __str__(self):
         return self.name
 
+
 class BillTags(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
@@ -34,6 +35,7 @@ class BillTags(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
@@ -59,7 +61,7 @@ class Bill(models.Model):
 
     class Meta:
         # if gov_id ends up not being unique enough, we could add date too, it'll just make the index bigger...
-        unique_together=('gov', 'gov_id')
+        unique_together = ('gov', 'gov_id')
         indexes = [
             models.Index(fields=['gov_id']),
             models.Index(fields=['date']),
@@ -68,6 +70,7 @@ class Bill(models.Model):
 
     def __str__(self):
         return self.title
+
 
 class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
