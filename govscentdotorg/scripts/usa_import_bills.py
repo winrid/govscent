@@ -123,9 +123,9 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
             'status_code')
         print('Checking', gov_id, package_path)
         existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
-        if not existing_bill:
-            print('Ingesting', gov_id, package_path, bill_dir_info)
-            try:
+        try:
+            if not existing_bill:
+                print('Ingesting', gov_id, package_path, bill_dir_info)
                 zip_file = ZipFile(package_path, 'r')
                 meta = get_bill_meta(zip_file)
                 bill = Bill.objects.create(
@@ -139,23 +139,25 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                 )
                 bill.save()
                 count_added += 1
-            except BadZipFile:
-                print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
-        else:
-            if should_update_all_text or should_update_all_html:
-                zip_file = ZipFile(package_path, 'r')
-                if should_update_all_text:
-                    print("Updating bill text...")
-                    text = get_bill_text(zip_file)
-                    existing_bill.text = text
-
-                if should_update_all_html:
-                    print("Updating bill html...")
-                    html = get_bill_html(zip_file)
-                    existing_bill.html = html
-                existing_bill.save()
-
-                count_updated += 1
             else:
-                print("Bill exists, skipping...")
+                if should_update_all_text or should_update_all_html:
+                    zip_file = ZipFile(package_path, 'r')
+                    if should_update_all_text:
+                        print("Updating bill text...")
+                        text = get_bill_text(zip_file)
+                        existing_bill.text = text
+
+                    if should_update_all_html:
+                        print("Updating bill html...")
+                        html = get_bill_html(zip_file)
+                        existing_bill.html = html
+                    existing_bill.save()
+
+                    count_updated += 1
+                else:
+                    print("Bill exists, skipping...")
+        except BadZipFile:
+            print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
+        except UnicodeDecodeError:
+            print("Failed to handle bill due to a unicode error. continuing.", package_path)
     print(f'Added {count_added} bills. Updated {count_updated} bills text.')
