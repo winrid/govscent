@@ -16,6 +16,8 @@ from govscentdotorg.models import Bill
 lemmatizer = WordNetLemmatizer()
 
 def clean_text(lst):
+    nltk.download('wordnet')
+    nltk.download('stopwords')
     cleaned_text = []
     stopwords_set = set(stopwords.words("english"))
 
@@ -86,7 +88,7 @@ def get_training_docs():
     bill_texts = []
     for bill in bills:
         bill_texts.append(bill.text)
-    return bill_texts
+    return clean_text(bill_texts)
 
 def run():
     print("Getting training data...")
