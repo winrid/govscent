@@ -1,7 +1,5 @@
-# 1. Ideally we use an existing model, since we want to determine topic similarity and our bills' content might throw this off...
-#   However, we are having trouble getting more than 0/1 topics from a bill with BERT using the newsgroups model, so for now we are trained off the bills themselves...
-# 2. Once we have topics and a way to calculate distance, we can parse our documents and use BERT's find_topics and find min/max/avg topic distance.
-# 3. Topic distances, and distance from bill label, can be used to determine smelliness.
+# 3.
+
 import re
 import nltk
 import gensim
@@ -10,25 +8,27 @@ from gensim import corpora, models
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+from sklearn.datasets import fetch_20newsgroups
 
 from govscentdotorg.models import Bill
 
 lemmatizer = WordNetLemmatizer()
 
-def clean_text(lst):
+
+def download_dependencies_get_stop_words() -> set[str]:
     nltk.download('wordnet')
     nltk.download('stopwords')
-    cleaned_text = []
-    stopwords_set = set(stopwords.words("english"))
+    nltk.download('punkt')
+    return set(stopwords.words("english"))
 
+
+def clean_text(text: str, stop_words: set[str]) -> str:
     # Text Cleaning (Removing Punctuations, Stopwords, Tokenization and Lemmatization)
-    for text in lst:
-        text = str(text).lower()
-        text = re.sub(r'[^\w ]+', "", text)
-        text = " ".join([lemmatizer.lemmatize(word,pos='v') for word in word_tokenize(text) if len(word) > 3 and word not in stopwords_set])
-        cleaned_text.append(text)
+    text = str(text).lower()
+    text = re.sub(r'[^\w ]+', "", text)
+    text = " ".join([lemmatizer.lemmatize(word, pos='v') for word in word_tokenize(text) if len(word) > 3 and word not in stop_words])
 
-    return cleaned_text
+    return text
 
 
 def make_biagram(data: [str], tokens: [str]):
@@ -37,8 +37,6 @@ def make_biagram(data: [str], tokens: [str]):
     return [bigram_mod[doc] for doc in tokens]
 
 def topic_modeling(data: [str]):
-    nltk.download('punkt')
-    print('Punkt downloaded.')
     # Tokens
     tokens = []
     for text in data:
@@ -71,26 +69,27 @@ def topic_modeling(data: [str]):
         print("\n")
 
     testing_bill = Bill.objects.get(pk=72770)
-    bow = dictionary.doc2bow([testing_bill.text])
+    bow = dictionary.doc2bow([clean_text([testing_bill.text])[0]])
     document_topics = lda_model.get_document_topics(bow)
     # print(document_topics)
     for topic, relevance in document_topics:
+        print('----------------------------------')
         print(topic)
         print(relevance)
-        print('----')
         print(lda_model.print_topic(topic))
 
 def get_training_docs():
-    # return fetch_20newsgroups(subset='all')['data']
+    return clean_text(fetch_20newsgroups(subset='all')['data'])
     # Yes, this means all the bill text needs to fit in memory. It takes around 1.5gb per 50k bills just for the text.
-    bills = Bill.objects.all().only("text")[:50]
-    print(f'Training with {len(bills)} bills.')
-    bill_texts = []
-    for bill in bills:
-        bill_texts.append(bill.text)
-    return clean_text(bill_texts)
+    # bills = Bill.objects.all().only("text")[:5000]
+    # print(f'Training with {len(bills)} bills.')
+    # bill_texts = []
+    # for bill in bills:
+    #     bill_texts.append(bill.text)
+    # return clean_text(bill_texts)
 
 def run():
+    stop_words = download_dependencies_get_stop_words()
     print("Getting training data...")
     training_data = get_training_docs()
     print("Got training data...")
