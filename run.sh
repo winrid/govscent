@@ -2,4 +2,8 @@
 # The orchestrator runs this file post-deployment.
 
 python manage.py migrate
-# TODO server
+/home/winrid/govscent/venv/bin/gunicorn \
+          --access-logfile - \
+          --workers 4 \
+          --bind unix:/run/gunicorn.sock \
+          govscent.wsgi:application

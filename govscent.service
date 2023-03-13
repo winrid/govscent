@@ -1,0 +1,13 @@
+[Unit]
+Description=The Govscent.org Website and Application
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=winrid
+ExecStart=/usr/bin/env sh /home/winrid/govscent/run.sh
+
+[Install]
+WantedBy=multi-user.target
