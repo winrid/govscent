@@ -31,7 +31,8 @@ SECRET_KEY = os.environ['SECRET_KEY']
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ['ENV'] != 'production'
 
-ALLOWED_HOSTS = []
+# We don't have any reason to restrict the hosts since we go through a proxy server.
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
