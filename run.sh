@@ -1,8 +1,8 @@
 #!/bin/bash
 # The orchestrator runs this file post-deployment.
 
-python manage.py migrate
-/home/winrid/govscent/venv/bin/gunicorn \
+python3 manage.py migrate
+/home/winrid/govscent/env/bin/gunicorn \
           --access-logfile - \
           --workers 4 \
           --bind unix:/run/gunicorn.sock \
