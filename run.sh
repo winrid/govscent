@@ -9,5 +9,4 @@ python3.10 manage.py migrate
 /home/winrid/govscent/env/bin/gunicorn \
           --access-logfile - \
           --workers 4 \
-          --bind unix:/run/gunicorn.sock \
           govscent.wsgi:application
