@@ -46,7 +46,7 @@ def get_bill_text(zipfile: ZipFile) -> str | None:
     if html_file is not None:
         pre_wrapped_html = decode(zipfile.read(html_file))[0]
         # Find bill text after beginning section etc
-        return pre_wrapped_html.replace("<html><body><pre>", "").replace("</pre></body></html>", "")
+        return pre_wrapped_html.replace("<html><body><pre>", "").replace("</pre></body></html>", "").replace("\x00", "\uFFFD")
         # The below implementation was an attempt to extract text from different sections, but it does not work yet.
         # The bill format is very inconsistent. Examples - compare 114hr208eas (no separators) vs 114sconres16rfh (section separators)
         # We look for text after the 2nd _______________________________________________________________________ and
@@ -100,7 +100,7 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
                     body_html += line + "\n"
             elif line.startswith("<body"):
                 in_body = True
-        return body_html
+        return body_html.replace("\x00", "\uFFFD")
 
     return None
 
