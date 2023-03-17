@@ -6,15 +6,11 @@ from django.db import models
 
 
 class BillTopic(models.Model):
-    key = models.CharField(max_length=500)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=500, unique=True)
     weight = models.IntegerField(validators=[
         MaxValueValidator(100),
         MinValueValidator(0)
     ])
-
-    class Meta:
-        unique = 'key'
 
     def __str__(self):
         return self.name
