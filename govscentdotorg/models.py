@@ -41,8 +41,8 @@ class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
     # For the USA: congress + bill type + bill #
     gov_id = models.CharField(max_length=1000, verbose_name="Bill Identifier", help_text="Each revision of bill has its own gov_id.")
-    gov_group_id = models.CharField(max_length=1000, verbose_name="Bill Group Identifier", help_text="Can be used to group a bill across many versions.", default=None, blank=True)
-    is_latest_revision = models.BooleanField()
+    gov_group_id = models.CharField(max_length=1000, verbose_name="Bill Group Identifier", help_text="Can be used to group a bill across many versions.", default=None, blank=True, null=True)
+    is_latest_revision = models.BooleanField(default=False)
     title = models.TextField()
     type = models.CharField(max_length=50)
     text = models.TextField(default="")
