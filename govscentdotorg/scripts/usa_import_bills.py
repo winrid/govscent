@@ -116,12 +116,12 @@ def recalculate_latest_revision_for_group(bill: Bill):
             newest = bill
     # TODO This could be done within a transaction to improve accuracy.
     newest.is_latest_revision = True
-    newest.save()
+    newest.save(update_fields=["is_latest_revision"])
     if len(existing_bills) > 1:
         for bill in existing_bills:
             if bill.id != newest.id and bill.is_latest_revision:
                 bill.is_latest_revision = False
-                bill.save()
+                bill.save(update_fields=["is_latest_revision"])
 
 def run(data_dir: str, update_all_text: str, update_all_html: str):
     if not data_dir:
@@ -164,7 +164,7 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                 # Migrate to add gov_group_id. Can remove later.
                 if not existing_bill.gov_group_id:
                     existing_bill.gov_group_id = gov_group_id
-                    existing_bill.save()
+                    existing_bill.save(update_fields=["gov_group_id"])
                 if should_update_all_text or should_update_all_html:
                     zip_file = ZipFile(package_path, 'r')
                     if should_update_all_text:
