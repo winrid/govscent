@@ -78,3 +78,4 @@ class Bill(models.Model):
 class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'date')
+    list_filter = ('is_latest_revision',)
