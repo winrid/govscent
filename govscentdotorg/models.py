@@ -86,5 +86,5 @@ class BillTopicAdmin(admin.ModelAdmin):
 class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'date')
-    list_filter = ('is_latest_revision', 'on_topic_ranking', 'topics')
+    list_filter = ('is_latest_revision', 'on_topic_ranking')
     search_fields = ('gov_id',)
