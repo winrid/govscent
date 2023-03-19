@@ -3,6 +3,8 @@ import datetime
 from django.contrib import admin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 
 
 class BillTopic(models.Model):
@@ -68,8 +70,21 @@ class Bill(models.Model):
         return self.title
 
 
+class BillTopicAdmin(admin.ModelAdmin):
+    readonly_fields = ('bill_links',)
+
+    def bill_links(self, obj):
+        html = '<ul>'
+        bills = Bill.objects.filter(topics__in=[obj]).only('id', 'title')
+        for bill in bills:
+            html += f'<li><a href="{reverse("admin:govscentdotorg_bill_change", args=(bill.pk,))}">{bill.title}</a></li>'
+        html += '</ul>'
+        return mark_safe(html)
+    bill_links.short_description = 'Bills'
+
+
 class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'date')
-    list_filter = ('is_latest_revision', 'on_topic_ranking')
+    list_filter = ('is_latest_revision', 'on_topic_ranking', 'topics')
     search_fields = ('gov_id',)
