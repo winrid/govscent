@@ -74,11 +74,11 @@ class BillTopicAdmin(admin.ModelAdmin):
     readonly_fields = ('bill_links',)
 
     def bill_links(self, obj):
-        html = '<ul>'
+        html = '<ol>'
         bills = Bill.objects.filter(topics__in=[obj]).only('id', 'title')
         for bill in bills:
             html += f'<li><a href="{reverse("admin:govscentdotorg_bill_change", args=(bill.pk,))}">{bill.title}</a></li>'
-        html += '</ul>'
+        html += '</ol>'
         return mark_safe(html)
     bill_links.short_description = 'Bills'
 
