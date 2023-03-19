@@ -7,4 +7,4 @@
 cd /home/winrid/govscent
 python3.10 -m venv env
 source env/bin/activate
-python3.10 manage.py runscript usa_import_bills --script-args /home/winrid/congress/data False False
+python3.10 manage.py runscript usa_import_bills --script-args /home/winrid/congress/data False False False

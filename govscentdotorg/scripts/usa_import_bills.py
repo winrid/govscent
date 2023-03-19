@@ -106,9 +106,8 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
 
 
 def recalculate_latest_revision_for_group(bill: Bill):
-    # This is not very efficient and can be optimized by introducing a flag script to the script to recalculate
-    # old bills. If that flag isn't true, then we can just filter for bills older than this one.
-    # This approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
+    # While not super efficient this approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
+    # It is also only ran when a bill is added to a group.
     existing_bills = Bill.objects.filter(gov=bill.gov, gov_group_id=bill.gov_group_id).only("is_latest_revision", "date")
     newest = None
     for bill in existing_bills:
@@ -123,11 +122,12 @@ def recalculate_latest_revision_for_group(bill: Bill):
                 bill.is_latest_revision = False
                 bill.save(update_fields=["is_latest_revision"])
 
-def run(data_dir: str, update_all_text: str, update_all_html: str):
+def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_cache: str):
     if not data_dir:
         raise Exception("--data-dir is required.")
     should_update_all_text = update_all_text == 'True'
     should_update_all_html = update_all_html == 'True'
+    should_update_all_cache = update_all_cache == 'True'
     count_added = 0
     count_updated = 0
     for bill_dir_info in iterate_dir_for_pattern(data_dir,
@@ -180,7 +180,8 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                     count_updated += 1
                 else:
                     print("Bill exists, skipping...")
-                recalculate_latest_revision_for_group(existing_bill)
+                if should_update_all_cache:
+                    recalculate_latest_revision_for_group(existing_bill)
         except BadZipFile:
             print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         except UnicodeDecodeError:
