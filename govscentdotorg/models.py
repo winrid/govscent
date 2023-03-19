@@ -42,6 +42,7 @@ class Bill(models.Model):
     # For the USA: congress + bill type + bill #
     gov_id = models.CharField(max_length=1000, verbose_name="Bill Identifier", help_text="Each revision of bill has its own gov_id.")
     gov_group_id = models.CharField(max_length=1000, verbose_name="Bill Group Identifier", help_text="Can be used to group a bill across many versions.", default=None, blank=True)
+    is_latest_revision = models.BooleanField()
     title = models.TextField()
     type = models.CharField(max_length=50)
     text = models.TextField(default="")
@@ -67,6 +68,7 @@ class Bill(models.Model):
             models.Index(fields=['gov_id']),
             models.Index(fields=['date']),
             models.Index(fields=['last_analyzed_at']),
+            models.Index(fields=['gov', 'gov_group_id']),
         ]
 
     def __str__(self):

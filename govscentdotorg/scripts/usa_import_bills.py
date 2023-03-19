@@ -105,6 +105,24 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
     return None
 
 
+def recalculate_latest_revision_for_group(bill: Bill):
+    # This is not very efficient and can be optimized by introducing a flag script to the script to recalculate
+    # old bills. If that flag isn't true, then we can just filter for bills older than this one.
+    # This approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
+    existing_bills = Bill.objects.filter(gov=bill.gov, gov_group_id=bill.gov_group_id).only("is_latest_revision", "date")
+    newest = None
+    for bill in existing_bills:
+        if newest is None or bill.date > newest.date:
+            newest = bill
+    # TODO This could be done within a transaction to improve accuracy.
+    newest.is_latest_revision = True
+    newest.save()
+    if len(existing_bills) > 1:
+        for bill in existing_bills:
+            if bill.id != newest.id and bill.is_latest_revision:
+                bill.is_latest_revision = False
+                bill.save()
+
 def run(data_dir: str, update_all_text: str, update_all_html: str):
     if not data_dir:
         raise Exception("--data-dir is required.")
@@ -119,10 +137,11 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
         package_path = bill_dir_info.get('package')
         if package_path is None:
             continue
-        gov_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number') + bill_dir_info.get(
-            'status_code')
+        gov_group_id = bill_dir_info.get('congress') + bill_dir_info.get('bill_type_and_number')
+        gov_id = gov_group_id + bill_dir_info.get('status_code')
         print('Checking', gov_id, package_path)
-        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id").first()
+        # Update the cached the latest revision.
+        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id", "gov_group_id").first()
         try:
             if not existing_bill:
                 print('Ingesting', gov_id, package_path, bill_dir_info)
@@ -130,6 +149,7 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                 meta = get_bill_meta(zip_file)
                 bill = Bill.objects.create(
                     gov="USA",
+                    gov_group_id=gov_group_id,
                     gov_id=gov_id,
                     title=meta.get('title'),
                     type=bill_dir_info['bill_type'],
@@ -138,8 +158,13 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                     date=meta.get('date')
                 )
                 bill.save()
+                recalculate_latest_revision_for_group(bill)
                 count_added += 1
             else:
+                # Migrate to add gov_group_id. Can remove later.
+                if not existing_bill.gov_group_id:
+                    existing_bill.gov_group_id = gov_group_id
+                    existing_bill.save()
                 if should_update_all_text or should_update_all_html:
                     zip_file = ZipFile(package_path, 'r')
                     if should_update_all_text:
@@ -152,10 +177,10 @@ def run(data_dir: str, update_all_text: str, update_all_html: str):
                         html = get_bill_html(zip_file)
                         existing_bill.html = html
                     existing_bill.save()
-
                     count_updated += 1
                 else:
                     print("Bill exists, skipping...")
+                recalculate_latest_revision_for_group(existing_bill)
         except BadZipFile:
             print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         except UnicodeDecodeError:
