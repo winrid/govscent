@@ -6,11 +6,8 @@ from django.db import models
 
 
 class BillTopic(models.Model):
-    name = models.CharField(max_length=500, unique=True)
-    weight = models.IntegerField(validators=[
-        MaxValueValidator(100),
-        MinValueValidator(0)
-    ])
+    name = models.TextField(unique=True)
+    created_at = models.DateTimeField(default=datetime.datetime.now)
 
     def __str__(self):
         return self.name
@@ -28,15 +25,6 @@ class BillSmell(models.Model):
         return self.name
 
 
-class BillTags(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    sort_priority = models.IntegerField()
-
-    def __str__(self):
-        return self.name
-
-
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
     # For the USA: congress + bill type + bill #
@@ -49,17 +37,21 @@ class Bill(models.Model):
     html = models.TextField(default="")
     date = models.DateField()
     last_analyzed_at = models.DateTimeField(default=None, null=True)
+    last_analyze_error = models.TextField(default=None, blank=True, null=True)
+    last_analyze_response = models.TextField(default=None, blank=True, null=True)
 
-    # There are a lot of relations here, which might be concerning. However, consistency is more important, as the data volume is low.
-    # Caching and projections will be used to ensure performance stays okay.
-    title_topics = models.ManyToManyField(BillTopic, related_name="title_topics")
-    text_topics = models.ManyToManyField(BillTopic, related_name="text_topics")
+    topics = models.ManyToManyField(BillTopic, related_name="topics")
+    text_summary = models.TextField(default=None, blank=True, null=True)
     smells = models.ManyToManyField(BillSmell)
-    smelliness = models.IntegerField(default=None, null=True, validators=[
-        MaxValueValidator(100),
-        MinValueValidator(0)
+    on_topic_ranking = models.PositiveSmallIntegerField(default=None, null=True, validators=[
+        MinValueValidator(0),
+        MaxValueValidator(100)
     ])
-    tags = models.ManyToManyField(BillTags)
+    on_topic_reasoning = models.TextField(default=None, blank=True, null=True)
+    smelliness = models.IntegerField(default=None, null=True, validators=[
+        MinValueValidator(0),
+        MaxValueValidator(100),
+    ])
 
     class Meta:
         # if gov_id ends up not being unique enough, we could add date too, it'll just make the index bigger...
@@ -68,6 +60,7 @@ class Bill(models.Model):
             models.Index(fields=['gov_id']),
             models.Index(fields=['date']),
             models.Index(fields=['last_analyzed_at']),
+            models.Index(fields=['last_analyzed_at', 'is_latest_revision']),
             models.Index(fields=['gov', 'gov_group_id']),
         ]
 
@@ -79,3 +72,4 @@ class BillAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'date')
     list_filter = ('is_latest_revision',)
+    search_fields = ('gov_id',)

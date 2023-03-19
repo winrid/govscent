@@ -1,96 +1,146 @@
-# 3.
+import datetime
+import os
 
-import re
-import nltk
-import gensim
-from gensim.models.ldamulticore import LdaMulticore
-from gensim import corpora, models
-from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from sklearn.datasets import fetch_20newsgroups
-
-from govscentdotorg.models import Bill
-
-lemmatizer = WordNetLemmatizer()
+from govscentdotorg.models import Bill, BillTopic
+import openai
 
 
-def download_dependencies_get_stop_words() -> set[str]:
-    nltk.download('wordnet')
-    nltk.download('stopwords')
-    nltk.download('punkt')
-    return set(stopwords.words("english"))
+def extract_response_topics(response: str) -> [str]:
+    [top_10_index, is_single_topic] = get_top_10_index(response)
+    lines = response[top_10_index:].splitlines()
+    if is_single_topic:
+        if len(lines[0]) > 10:
+            # Example: Topic: A sunny day in canada
+            return [lines[0].replace("Topic:", "").strip()]
+        else:
+            line = lines[1]
+            if line.isnumeric():
+                # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
+                first_period_index = line.index(".")
+                line_after_first_number = line[first_period_index + 1:].strip()
+                return [line_after_first_number]
+            else:
+                return line.strip()
+    else:
+        topics = []
+        for line in lines[1:10]:
+            if len(line) > 2:
+                if line[0].isnumeric():
+                    # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
+                    first_period_index = line.index(".")
+                    line_after_first_number = line[first_period_index + 1:].strip()
+                    topics.append(line_after_first_number)
+                else:
+                    # end of topics
+                    break
+        return topics
 
 
-def clean_text(text: str, stop_words: set[str]) -> str:
-    # Text Cleaning (Removing Punctuations, Stopwords, Tokenization and Lemmatization)
-    text = str(text).lower()
-    text = re.sub(r'[^\w ]+', "", text)
-    text = " ".join([lemmatizer.lemmatize(word, pos='v') for word in word_tokenize(text) if len(word) > 3 and word not in stop_words])
+def get_topic_by_text(text: str) -> BillTopic:
+    topic = BillTopic.objects.filter(name__exact=text).first()
+    if topic is None:
+        topic = BillTopic(name=text, created_at=datetime.datetime.now(tz=datetime.timezone.utc))
+        topic.save()
+        return topic
+    return topic
 
-    return text
+
+def set_topics(bill: Bill, response: str):
+    topic_texts = extract_response_topics(response)
+    topics = []
+    for topic_text in topic_texts:
+        topic = get_topic_by_text(topic_text)
+        topics.append(topic)
+    bill.topics.set(topics)
 
 
-def make_biagram(data: [str], tokens: [str]):
-    bigram = gensim.models.Phrases(data, min_count=5, threshold=100) # higher threshold fewer phrases.
-    bigram_mod = gensim.models.phrases.Phraser(bigram)
-    return [bigram_mod[doc] for doc in tokens]
+# Gets the index and whether we're dealing with a single topic in the response.
+def get_top_10_index(response: str) -> (int, bool):
+    # noinspection PyBroadException
+    try:
+        index = response.index("Top 10")
+        return index, False
+    except ValueError:
+        try:
+            index = response.index("Topic:")
+            return index, True
+        except ValueError:
+            if response[:2] == "1.":
+                return 0, False
+            else:
+                raise ValueError
 
-def topic_modeling(data: [str]):
-    # Tokens
-    tokens = []
-    for text in data:
-        text_tokens = word_tokenize(text)
-        tokens.append(text_tokens)
 
-    # Make Biagrams
-    tokens = make_biagram(data=data, tokens=tokens)
+def set_focus_and_summary(bill: Bill, response: str):
+    # if ValueError is thrown, we'll get an exception and openai response stored in the Bill and we can investigate later.
+    # Example: Ranking on staying on topic: 10/10.
+    # Very dirty and naughty but fast.
+    topic_ranking_end_token = "/10"
+    topic_ranking_index = response.index(topic_ranking_end_token)
+    topic_ranking = response[topic_ranking_index - 2:topic_ranking_index].strip()
+    bill.on_topic_ranking = topic_ranking
+    top_10_index = get_top_10_index(response)[0]
 
-    # Corpora Dictionary
-    dictionary = corpora.Dictionary(tokens)
+    try:
+        summary_token = "Summary:"
+        summary_index = response.index(summary_token) + len(summary_token)
+        # We assume everything after topic ranking is the summary.
+        bill.text_summary = response[summary_index:top_10_index].strip()
 
-    # Creating Document Term Matrix
-    doc_term_matrix = [dictionary.doc2bow(doc) for doc in tokens]
+        if summary_index < topic_ranking_index and len(response[topic_ranking_index:]) > 50:
+            bill.on_topic_reasoning = response[topic_ranking_index + (len(topic_ranking_end_token)):].strip()
+            if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == ".":
+                bill.on_topic_reasoning = bill.on_topic_reasoning[bill.on_topic_reasoning.index(" "):].strip()
+    except ValueError:
+        # Text did not contain "Summary:". So, maybe it's in the format of <topics>\n\n<ranking><summary>
+        bill.text_summary = response[topic_ranking_index + 1:].strip()
+        # TODO set reasoning
 
-    # Training The LDA Model
-    lda_model = gensim.models.LdaModel(doc_term_matrix,   # Document Term Matrix
-                                       num_topics = 100,     # Number of Topics
-                                       id2word = dictionary,     # Word and Frequency Dictionary
-                                       passes = 10,        # Number of passes throw the corpus during training (similar to epochs in neural networks)
-                                       chunksize=10,       # Number of documents to be used in each training chunk
-                                       update_every=1,     # Number of documents to be iterated through for each update.
-                                       alpha='auto',       # number of expected topics that expresses
-                                       per_word_topics=True,
-                                       random_state=42)
 
-    # Exploring Common Words For Each Topic With Their Relative Words
-    for idx, topic in lda_model.print_topics():
-        print("Topic: {} \nWords: {}".format(idx, topic ))
-        print("\n")
+def analyze_bill(bill: Bill, ai_text: str):
+    # Save here in case the next steps error out so we can debug.
+    # Only save last_analyze_response as an optimization.
+    bill.save(update_fields=['last_analyze_response'])
+    set_topics(bill, ai_text)
+    set_focus_and_summary(bill, ai_text)
+    bill.last_analyzed_at = datetime.datetime.now(tz=datetime.timezone.utc)
+    bill.last_analyze_error = None
+    # Now just save everything.
+    bill.save()
 
-    testing_bill = Bill.objects.get(pk=72770)
-    bow = dictionary.doc2bow([clean_text([testing_bill.text])[0]])
-    document_topics = lda_model.get_document_topics(bow)
-    # print(document_topics)
-    for topic, relevance in document_topics:
-        print('----------------------------------')
-        print(topic)
-        print(relevance)
-        print(lda_model.print_topic(topic))
 
-def get_training_docs():
-    return clean_text(fetch_20newsgroups(subset='all')['data'])
-    # Yes, this means all the bill text needs to fit in memory. It takes around 1.5gb per 50k bills just for the text.
-    # bills = Bill.objects.all().only("text")[:5000]
-    # print(f'Training with {len(bills)} bills.')
-    # bill_texts = []
-    # for bill in bills:
-    #     bill_texts.append(bill.text)
-    # return clean_text(bill_texts)
+def run(arg_reparse_only: str):
+    reparse_only = arg_reparse_only == 'True'
 
-def run():
-    stop_words = download_dependencies_get_stop_words()
-    print("Getting training data...")
-    training_data = get_training_docs()
-    print("Got training data...")
-    topic_modeling(training_data)
+    if not reparse_only:
+        openai.organization = os.getenv("OPENAI_API_ORG")
+        openai.api_key = os.getenv("OPENAI_API_KEY")
+
+    print('Finding bills to analyze...')
+    bills = Bill.objects.filter(is_latest_revision=True, last_analyzed_at__isnull=False) \
+        .only("id", "gov_id", "text") if reparse_only else Bill.objects.filter(
+        is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text")
+
+    print(f"Will analyze {len(bills)} bills.")
+    for bill in bills:
+        print(F"Analyzing {bill.gov_id}")
+        # print(f"Analyzing {bill.text}")
+        try:
+            if not reparse_only:
+                # This is done all in one prompt to try to reduce # of tokens.
+                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{bill.text}"
+                completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt}
+                ])
+                print(completion)
+                response_text = completion.choices[0].message.content
+                bill.last_analyze_response = response_text
+                analyze_bill(bill, response_text)
+            elif bill.last_analyze_response is not None:
+                analyze_bill(bill, bill.last_analyze_response)
+
+        except Exception as e:
+            print(f"Failed for {bill.gov_id}", e)
+            bill.last_analyze_error = str(e)
+            bill.save(update_fields=['last_analyze_error'])
