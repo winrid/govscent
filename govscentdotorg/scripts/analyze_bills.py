@@ -89,7 +89,7 @@ def set_focus_and_summary(bill: Bill, response: str):
 
         if summary_index < topic_ranking_index and len(response[topic_ranking_index:]) > 50:
             bill.on_topic_reasoning = response[topic_ranking_index + (len(topic_ranking_end_token)):].strip()
-            if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == ".":
+            if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == "." or bill.on_topic_reasoning[2] == ".":
                 bill.on_topic_reasoning = bill.on_topic_reasoning[bill.on_topic_reasoning.index(" "):].strip()
     except ValueError:
         # Text did not contain "Summary:". So, maybe it's in the format of <topics>\n\n<ranking><summary>
