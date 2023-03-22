@@ -4,6 +4,7 @@ from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilt
 from django.contrib import admin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
@@ -78,9 +79,18 @@ class BillTopicAdmin(admin.ModelAdmin):
     list_display = ('name', 'bill_count')
     readonly_fields = ('bill_links',)
 
+    def get_queryset(self, request):
+        queryset = super().get_queryset(request)
+        queryset = queryset.annotate(
+            _bill_count=Count("topics", distinct=True),
+        )
+        return queryset
+
     def bill_count(self, obj):
-        return Bill.objects.filter(topics__in=[obj]).count()
+        return obj._bill_count
+
     bill_count.short_description = "# of Bills"
+    bill_count.admin_order_field = '_bill_count'
 
     def bill_links(self, obj):
         html = '<ol>'
