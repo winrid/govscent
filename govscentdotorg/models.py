@@ -105,7 +105,7 @@ class BillTopicAdmin(admin.ModelAdmin):
 
 class BillAdmin(NumericFilterModelAdmin):
     date_hierarchy = 'date'
-    list_display = ('title', 'date')
+    list_display = ('title', 'on_topic_ranking', 'date')
     list_filter = ('is_latest_revision', ('on_topic_ranking', RangeNumericFilter))
     search_fields = ('gov_id',)
     raw_id_fields = ('topics',)
