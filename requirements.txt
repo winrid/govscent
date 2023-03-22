@@ -12,6 +12,7 @@ click==8.1.3
 cryptography==39.0.2
 Cython==0.29.33
 Django==4.1.7
+django-admin-numeric-filter==0.1.9
 django-extensions==3.2.1
 filelock==3.9.0
 frozenlist==1.3.3

@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'govscentdotorg.apps.GovscentdotorgConfig',
-    'django_extensions'
+    'django_extensions',
+    'admin_numeric_filter',
 ]
 
 MIDDLEWARE = [

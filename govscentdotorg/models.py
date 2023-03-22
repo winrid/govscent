@@ -1,5 +1,6 @@
 import datetime
 
+from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilter
 from django.contrib import admin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -30,8 +31,11 @@ class BillSmell(models.Model):
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
     # For the USA: congress + bill type + bill #
-    gov_id = models.CharField(max_length=1000, verbose_name="Bill Identifier", help_text="Each revision of bill has its own gov_id.")
-    gov_group_id = models.CharField(max_length=1000, verbose_name="Bill Group Identifier", help_text="Can be used to group a bill across many versions.", default=None, blank=True, null=True)
+    gov_id = models.CharField(max_length=1000, verbose_name="Bill Identifier",
+                              help_text="Each revision of bill has its own gov_id.")
+    gov_group_id = models.CharField(max_length=1000, verbose_name="Bill Group Identifier",
+                                    help_text="Can be used to group a bill across many versions.", default=None,
+                                    blank=True, null=True)
     is_latest_revision = models.BooleanField(default=False)
     title = models.TextField()
     type = models.CharField(max_length=50)
@@ -80,12 +84,13 @@ class BillTopicAdmin(admin.ModelAdmin):
             html += f'<li><a href="{reverse("admin:govscentdotorg_bill_change", args=(bill.pk,))}">{bill.title}</a></li>'
         html += '</ol>'
         return mark_safe(html)
+
     bill_links.short_description = 'Bills'
 
 
-class BillAdmin(admin.ModelAdmin):
+class BillAdmin(NumericFilterModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'date')
-    list_filter = ('is_latest_revision', 'on_topic_ranking')
+    list_filter = ('is_latest_revision', ('on_topic_ranking', RangeNumericFilter))
     search_fields = ('gov_id',)
     raw_id_fields = ('topics',)
