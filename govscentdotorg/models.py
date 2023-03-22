@@ -75,7 +75,12 @@ class Bill(models.Model):
 
 
 class BillTopicAdmin(admin.ModelAdmin):
+    list_display = ('name', 'bill_count')
     readonly_fields = ('bill_links',)
+
+    def bill_count(self, obj):
+        return Bill.objects.filter(topics__in=[obj]).count()
+    bill_count.short_description = "# of Bills"
 
     def bill_links(self, obj):
         html = '<ol>'
