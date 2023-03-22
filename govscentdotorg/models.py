@@ -88,3 +88,4 @@ class BillAdmin(admin.ModelAdmin):
     list_display = ('title', 'date')
     list_filter = ('is_latest_revision', 'on_topic_ranking')
     search_fields = ('gov_id',)
+    raw_id_fields = ('topics',)
