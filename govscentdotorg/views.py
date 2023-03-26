@@ -8,6 +8,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from govscentdotorg.models import Bill
+from govscentdotorg.services.bill_html_generator import us_bill_text_to_html
 
 
 def get_index_bills_cached() -> [Bill]:
@@ -53,5 +54,6 @@ def bill_page(request, gov, gov_id):
     if not bill:
         raise Http404
     return render(request, 'bill.html', {
-        'bill': bill
+        'bill': bill,
+        'bill_html': us_bill_text_to_html(bill.text)  # We will add caching later. HTML generation lazily is nice because storage space is much lower and pure text compresses well.
     })

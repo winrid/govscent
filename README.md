@@ -6,4 +6,3 @@ Govscent is a Django application.
 
 - Python 3.10+
 - PostgresSQL (or SQLite for local dev)
-- pdftotext (http://poppler.freedesktop.org)

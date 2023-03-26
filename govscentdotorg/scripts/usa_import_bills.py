@@ -1,12 +1,9 @@
 # Import's Bills from the US Congress scraped via the Congress tool: https://github.com/unitedstates/congress
-# We currently only store and analyze the most recent version.
-# It takes arguments: <input_data_dir> <True/False: Whether to update all bill text> <True/False: Whether to update all bill html>
-import subprocess
+# It takes arguments: <input_data_dir> <True/False: Whether to update all bill text> <True/False: Whether to update recent bill flags>
 from encodings.utf_8 import decode
-from shutil import rmtree
 
 import dateutil.parser
-import xml.etree.ElementTree as ET
+import xml.etree.ElementTree as ElementTree
 
 from govscentdotorg.models import Bill
 from zipfile import ZipFile, BadZipFile
@@ -25,7 +22,7 @@ def get_bill_meta(zipfile: ZipFile) -> dict:
         None
     )
     if mods is not None:
-        root = ET.fromstring(zipfile.read(mods))
+        root = ElementTree.fromstring(zipfile.read(mods))
         meta['title'] = root.find('./{*}titleInfo/{*}title').text
         meta['date'] = dateutil.parser.parse(root.find('./{*}originInfo/{*}dateIssued').text)
 
@@ -71,46 +68,6 @@ def get_bill_text(zipfile: ZipFile) -> str | None:
     return None
 
 
-def get_bill_html(zipfile: ZipFile) -> str | None:
-    pdf_file = next(
-        # I only see .htm, but add .html just in case.
-        (file for file in zipfile.filelist if file.filename.endswith('.pdf')),
-        None
-    )
-
-    if pdf_file is not None:
-        working_dir = "/tmp/bills_working"
-        pdf_file_path = zipfile.extract(pdf_file, path=working_dir)
-
-        command = f'pdftohtml "{pdf_file_path}" -s -noframes -i -nomerge -nodrm -stdout'
-        html = subprocess.getoutput(command)
-
-        # save disk space, keep content in zip files most of the time.
-        rmtree(working_dir)
-
-        # We only want the HTML inside the <body> tag. Everything in the <head> are not needed.
-        # We could replace this with a regex, it'll probably be faster. DOM libraries are slow, and our
-        # use case is simple. This is "fast enough" for now.
-        in_body = False
-        body_html = ""
-        for line in html.splitlines():
-            if in_body:
-                if line.startswith("</body"):
-                    break
-                else:
-                    body_html += line + "\n"
-            elif line.startswith("<body"):
-                in_body = True
-        body_html = body_html.replace("\x00", "\uFFFD")
-        if len(body_html) == 0:
-            print(f'Could not find bill HTML in zip file! Was empty. {zipfile.filename}')
-        return body_html
-
-    print(f'Could not find bill HTML in zip file! {zipfile.filename}')
-
-    return None
-
-
 def recalculate_latest_revision_for_group(bill: Bill):
     print('Checking for latest revision.')
     # While not super efficient this approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
@@ -131,11 +88,10 @@ def recalculate_latest_revision_for_group(bill: Bill):
                 bill.save(update_fields=["is_latest_revision"])
 
 
-def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_cache: str):
+def run(data_dir: str, update_all_text: str, update_all_cache: str):
     if not data_dir:
         raise Exception("--data-dir is required.")
     should_update_all_text = update_all_text == 'True'
-    should_update_all_html = update_all_html == 'True'
     should_update_all_cache = update_all_cache == 'True'
     count_added = 0
     count_updated = 0
@@ -164,7 +120,6 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
                     title=meta.get('title'),
                     type=bill_dir_info['bill_type'],
                     text=get_bill_text(zip_file),
-                    html=get_bill_html(zip_file),
                     date=meta.get('date'),
                     source_file_path=package_path
                 )
@@ -181,18 +136,13 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
                     existing_bill.source_file_path = package_path
                     existing_bill.save(update_fields=["source_file_path"])
 
-                if should_update_all_text or should_update_all_html:
+                if should_update_all_text:
                     zip_file = ZipFile(package_path, 'r')
                     if should_update_all_text:
                         print("Updating bill text...")
                         text = get_bill_text(zip_file)
                         existing_bill.text = text
-
-                    if should_update_all_html:
-                        print("Updating bill html...")
-                        html = get_bill_html(zip_file)
-                        existing_bill.html = html
-                    existing_bill.save(update_fields=["text", "html"])
+                    existing_bill.save(update_fields=["text"])
                     count_updated += 1
                 else:
                     print("Bill exists, skipping...")
