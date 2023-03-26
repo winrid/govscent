@@ -54,10 +54,14 @@ def bill_page(request, gov, gov_id):
     if not bill:
         raise Http404
 
-    # We will add caching later. HTML generation lazily is nice because storage space is much lower and pure text compresses well.
+    # HTML generation lazily is nice because storage space is much lower and pure text compresses well.
     # Also, this is much quicker to iterate on when needed.
-    bill_text = us_bill_text_to_html(bill.text)
+    bill_html_cache_key = gov + gov_id
+    bill_html = cache.get(bill_html_cache_key)
+    if bill_html is None or request.GET.get('no_cache', '') == 'True':
+        bill_html = us_bill_text_to_html(bill.text)
+        cache.set(bill_html_cache_key, bill_html, 3600)  # Cache for an hour.
     return render(request, 'bill.html', {
         'bill': bill,
-        'bill_html': bill_text
+        'bill_html': bill_html
     })
