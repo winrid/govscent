@@ -4,7 +4,7 @@ from govscentdotorg.models import Bill
 
 
 def index(request):
-    recent_bills = Bill.objects.filter(gov__exact="USA").order_by('-date')[:50]
+    recent_bills = Bill.objects.filter(gov__exact="USA", last_analyzed_at__isnull=False).order_by('-date')[:50]
     return render(request, 'index.html', {
         'recent_bills': recent_bills
     })
