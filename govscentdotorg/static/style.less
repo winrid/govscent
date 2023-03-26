@@ -45,4 +45,16 @@ html, body {
   margin: 0 auto;
   padding: 20px;
   max-width: 1500px;
+
+  .bills {
+    .bill {
+      margin: 15px 0;
+    }
+  }
+
+  .bill-content {
+    & > div {
+      margin: 0 auto; // they have fixed width right now due to PDF parsing
+    }
+  }
 }

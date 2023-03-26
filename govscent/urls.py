@@ -20,6 +20,6 @@ from govscentdotorg import views
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('bill/<str:gov>/<str:bill_id>', views.bill_page, name='bill_page'),
+    path('bill/<str:gov>/<str:gov_id>', views.bill_page, name='bill_page'),
     path('admin/', admin.site.urls),
 ]

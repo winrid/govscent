@@ -1,4 +1,5 @@
 from django.core.cache import cache
+from django.http import Http404
 from django.shortcuts import render
 
 from govscentdotorg.models import Bill
@@ -18,8 +19,10 @@ def index(request):
     })
 
 
-def bill_page(request, gov, bill_id):
-    bill = Bill.objects.filter(gov__exact=gov, bill_id=bill_id).first()
+def bill_page(request, gov, gov_id):
+    bill = Bill.objects.filter(gov__exact=gov, gov_id__exact=gov_id).first()
+    if not bill:
+        raise Http404
     return render(request, 'bill.html', {
         'bill': bill
     })

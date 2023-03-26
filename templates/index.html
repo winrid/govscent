@@ -8,7 +8,7 @@
         {% if recent_bills %}
             {% for bill in recent_bills %}
                 <div class="bill">
-                    <div class="title">{{ bill.title }}</div>
+                    <a class="title" href="{% url 'bill_page' bill.gov bill.gov_id %}">{{ bill.title }}</a>
                     <div class="date">{{ bill.date }}</div>
                     <div class="on-topic-reasoning">{{ bill.on_topic_reasoning }}</div>
                     <div class="analyzed-status">

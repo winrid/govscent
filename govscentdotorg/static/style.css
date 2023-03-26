@@ -37,4 +37,10 @@ body {
   padding: 20px;
   max-width: 1500px;
 }
+.content .bills .bill {
+  margin: 15px 0;
+}
+.content .bill-content > div {
+  margin: 0 auto;
+}
 /*# sourceMappingURL=style.css.map */
