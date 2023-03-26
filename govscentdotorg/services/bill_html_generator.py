@@ -22,7 +22,10 @@ def us_bill_text_to_html(text: str) -> str:
         elif line_stripped == "<DOC>":
             continue
         elif line_stripped.startswith('(') and line_stripped[2] == ')':
-            html += f"<div class='bullet'>{line}</div>"
+            if line_stripped[1].isnumeric():
+                html += f"<div class='bullet num'>{line}</div>"
+            else:
+                html += f"<div class='bullet alpha'>{line}</div>"
         elif line_stripped.startswith('``'):
             line_start_quotes_fixed = line.replace('``', '"')
             html += f"<div class='bullet'>{line_start_quotes_fixed}</div>"

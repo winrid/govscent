@@ -63,4 +63,7 @@ body {
   margin: 0 auto;
   text-align: left;
 }
+.content .bill-content .bullet.num {
+  padding-left: 50px;
+}
 /*# sourceMappingURL=style.css.map */
