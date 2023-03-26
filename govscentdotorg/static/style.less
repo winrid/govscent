@@ -1,9 +1,34 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 .nav {
-  border-bottom: 1px solid #000;
+  .nav-content {
+    max-width: 1500px;
+    margin: 0 auto;
+    padding: 10px 0;
+
+    .logo, .title {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .logo {
+      img {
+        width: 64px;
+      }
+    }
+
+    .title {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
+  }
 }
 
 .content {
-  .what {
-
-  }
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1500px;
 }

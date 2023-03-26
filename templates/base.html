@@ -7,14 +7,17 @@
 </head>
 
 <body>
-    <div class="nav">
+<div class="nav">
+    <div class="nav-content">
         {% block nav %}
-
+            <div class="logo"><img src="{% static 'logo_0.png' %}" alt="Govscent.org Logo"/></div>
+            <div class="title">Govscent</div>
         {% endblock %}
     </div>
+</div>
 
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
+<div class="content">
+    {% block content %}{% endblock %}
+</div>
 </body>
 </html>

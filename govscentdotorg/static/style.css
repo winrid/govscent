@@ -1,4 +1,28 @@
-.nav {
-  border-bottom: 1px solid #000;
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+.nav .nav-content {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 10px 0;
+}
+.nav .nav-content .logo,
+.nav .nav-content .title {
+  display: inline-block;
+  vertical-align: middle;
+}
+.nav .nav-content .logo img {
+  width: 64px;
+}
+.nav .nav-content .title {
+  font-size: 20px;
+  letter-spacing: 0.5px;
+}
+.content {
+  margin: 0 auto;
+  padding: 20px;
+  max-width: 1500px;
 }
 /*# sourceMappingURL=style.css.map */
