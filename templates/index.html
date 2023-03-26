@@ -10,7 +10,7 @@
                 <div class="bill">
                     <a class="title" href="{% url 'bill_page' bill.gov bill.gov_id %}">{{ bill.title }}</a>
                     <div class="date">{{ bill.date }}</div>
-                    <div class="on-topic-reasoning">{{ bill.on_topic_reasoning }}</div>
+                    <div class="on-topic-ranking">{{ bill.on_topic_ranking }}</div>
                     <div class="analyzed-status">
                         {% if bill.last_analyzed_at %}
                             Analyzed at {{ bill.last_analyzed_at }}
