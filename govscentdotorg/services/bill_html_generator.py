@@ -15,7 +15,10 @@ def us_bill_text_to_html(text: str) -> str:
         elif len(line_stripped) < 50 and line_stripped.find(',') > -1 and len(line_stripped.split(' ')) == 3:
             html += f"<h5 class='date'>{line_stripped}</h5>"
         elif line_stripped.isupper():
-            html += f"<h2 class='text-center'>{line_stripped}</h3>"
+            if line_stripped.startswith('SEC'):
+                html += f"<h3 class='text-center'>{line_stripped}</h3>"
+            else:
+                html += f"<h2 class='text-center'>{line_stripped}</h2>"
         elif line_stripped == "<DOC>":
             continue
         elif line_stripped.startswith('(') and line_stripped[2] == ')':
