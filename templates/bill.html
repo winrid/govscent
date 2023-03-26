@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Bill{% endblock %}
+
+{% block content %}
+    <div class="bill-details">
+
+    </div>
+    <div class="bill-content">
+        {{ bill.html | safe }}
+    </div>
+{% endblock %}

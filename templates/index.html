@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}govscent.org{% endblock %}
+
+{% block content %}
+    <div class="bills">
+        <h2>Recent Bills</h2>
+        {% if recent_bills %}
+            {% for bill in recent_bills %}
+                <div class="bill">
+                    <div class="title">{{ bill.title }}</div>
+                    <div class="date">{{ bill.date }}</div>
+                    <div class="on-topic-reasoning">{{ bill.on_topic_reasoning }}</div>
+                    <div class="analyzed-status">
+                        {% if bill.last_analyzed_at %}
+                            Analyzed at {{ bill.last_analyzed_at }}
+                        {% else %}
+                            Pending Analysis
+                        {% endif %}
+                    </div>
+                    <div class="summary">
+                        {{ bill.text_summary }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <h5>No bills found.</h5>
+        {% endif %}
+    </div>
+{% endblock %}
