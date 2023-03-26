@@ -112,6 +112,7 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
 
 
 def recalculate_latest_revision_for_group(bill: Bill):
+    print('Checking for latest revision.')
     # While not super efficient this approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
     # It is also only ran when a bill is added to a group.
     existing_bills = Bill.objects.filter(gov=bill.gov, gov_group_id=bill.gov_group_id).only("is_latest_revision",
@@ -150,6 +151,7 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
         print('Checking', gov_id, package_path)
         # Update the cached the latest revision.
         existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id", "gov_group_id", "source_file_path").first()
+        print('Exists in DB?', gov_id, existing_bill is not None)
         try:
             if not existing_bill:
                 print('Ingesting', gov_id, package_path, bill_dir_info)
@@ -190,7 +192,7 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
                         print("Updating bill html...")
                         html = get_bill_html(zip_file)
                         existing_bill.html = html
-                    existing_bill.save()
+                    existing_bill.save(update_fields=["text", "html"])
                     count_updated += 1
                 else:
                     print("Bill exists, skipping...")
