@@ -67,6 +67,7 @@ class Bill(models.Model):
         indexes = [
             models.Index(fields=['gov_id']),
             models.Index(fields=['date']),
+            models.Index(fields=['on_topic_ranking']),
             models.Index(fields=['gov', 'date']),
             models.Index(fields=['last_analyzed_at']),
             models.Index(fields=['last_analyzed_at', 'is_latest_revision']),

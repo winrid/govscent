@@ -3,6 +3,19 @@
 {% block title %}govscent.org{% endblock %}
 
 {% block content %}
+    {% if stats %}
+        {% load humanize %}
+        <div class="stats">
+            <div class="stats-heading">
+                {{ stats.count_bills | intcomma }} bills. {{ stats.count_bills_analyzed | intcomma }} analyzed.
+            </div>
+            <div class="stats-smelliness-by-year">
+                {% for stat in stats.average_smelliness_by_year %}
+                    <div>{{ stat.year }} {{ stat.score }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
     <div class="bills">
         <h2>Recent Bills</h2>
         {% if recent_bills %}
