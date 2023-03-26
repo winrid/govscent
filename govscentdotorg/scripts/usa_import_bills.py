@@ -46,7 +46,8 @@ def get_bill_text(zipfile: ZipFile) -> str | None:
     if html_file is not None:
         pre_wrapped_html = decode(zipfile.read(html_file))[0]
         # Find bill text after beginning section etc
-        return pre_wrapped_html.replace("<html><body><pre>", "").replace("</pre></body></html>", "").replace("\x00", "\uFFFD")
+        return pre_wrapped_html.replace("<html><body><pre>", "").replace("</pre></body></html>", "").replace("\x00",
+                                                                                                             "\uFFFD")
         # The below implementation was an attempt to extract text from different sections, but it does not work yet.
         # The bill format is very inconsistent. Examples - compare 114hr208eas (no separators) vs 114sconres16rfh (section separators)
         # We look for text after the 2nd _______________________________________________________________________ and
@@ -102,13 +103,16 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
                 in_body = True
         return body_html.replace("\x00", "\uFFFD")
 
+    print(f'Could not find bill HTML in zip file! {zipfile.filename}')
+
     return None
 
 
 def recalculate_latest_revision_for_group(bill: Bill):
     # While not super efficient this approach is simple and may not be a problem considering we are dealing with a small number (< 1 million) docs.
     # It is also only ran when a bill is added to a group.
-    existing_bills = Bill.objects.filter(gov=bill.gov, gov_group_id=bill.gov_group_id).only("is_latest_revision", "date")
+    existing_bills = Bill.objects.filter(gov=bill.gov, gov_group_id=bill.gov_group_id).only("is_latest_revision",
+                                                                                            "date")
     newest = None
     for bill in existing_bills:
         if newest is None or bill.date > newest.date:
@@ -121,6 +125,7 @@ def recalculate_latest_revision_for_group(bill: Bill):
             if bill.id != newest.id and bill.is_latest_revision:
                 bill.is_latest_revision = False
                 bill.save(update_fields=["is_latest_revision"])
+
 
 def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_cache: str):
     if not data_dir:
