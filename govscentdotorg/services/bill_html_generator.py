@@ -19,7 +19,7 @@ def us_bill_text_to_html(text: str) -> str:
         elif line_stripped == "<DOC>":
             continue
         elif line_stripped.startswith('(') and line_stripped[2] == ')':
-            html += line + "<br>"
+            html += f"<div class='bullet'>{line}</div>"
         else:
             html += line
             # We compress the text a little by removing some consecutive newline.s
