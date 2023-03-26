@@ -44,7 +44,7 @@ def us_bill_text_to_html(text: str) -> str:
                             index += 1  # skip next line
             if line_stripped.startswith('``'):
                 line_start_quotes_fixed = line_stripped.replace('``', '"')
-                html += f"<div class='bullet'>{line_start_quotes_fixed}</div>"
+                html += f"<div class='bullet quoted'>{line_start_quotes_fixed}</div>"
             else:
                 if line_stripped[1].isnumeric():
                     html += f"<div class='bullet num'>{line_stripped}</div>"
