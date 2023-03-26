@@ -202,4 +202,5 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
             print("Failed to handle bill due to it being an invalid zip file, continuing.", package_path)
         except UnicodeDecodeError:
             print("Failed to handle bill due to a unicode error. continuing.", package_path)
+        print(f'Progress: Added {count_added} bills. Updated {count_updated} bills text.')
     print(f'Added {count_added} bills. Updated {count_updated} bills text.')
