@@ -1,6 +1,11 @@
 html, body {
   margin: 0;
   padding: 0;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+.font-space {
+  font-family: 'Space Grotesk', sans-serif;
 }
 
 .nav {
@@ -8,6 +13,13 @@ html, body {
     max-width: 1500px;
     margin: 0 auto;
     padding: 10px 0;
+
+    .ai-warning {
+      padding: 5px 0;
+      letter-spacing: 0.5px;
+      text-align: center;
+      .font-space();
+    }
 
     .logo, .title {
       display: inline-block;
@@ -21,8 +33,10 @@ html, body {
     }
 
     .title {
-      font-size: 20px;
-      letter-spacing: 0.5px;
+      margin-left: 10px;
+      font-size: 24px;
+      letter-spacing: 1px;
+      .font-space();
     }
   }
 }
