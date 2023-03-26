@@ -4,7 +4,29 @@
 
 {% block content %}
     <div class="bill-details">
-
+        <div class="score">
+            <h3>Bill Topic Score</h3>
+            {% if bill.last_analyzed_at %}
+                {{ bill.on_topic_ranking }}/10 on topic rating.
+                {% if bill.on_topic_reasoning %}
+                    <div class="reasoning">
+                        {{ bill.on_topic_reasoning }}
+                    </div>
+                {% endif %}
+            {% else %}
+                <h5>Pending Analysis.</h5>
+            {% endif %}
+        </div>
+        <div class="topics">
+            {% if bill.topics %}
+                <h3>Bill Topics</h3>
+                <ol>
+                {% for topic in bill.topics.all %}
+                    <li>{{ topic.name }}</li>
+                {% endfor %}
+                </ol>
+            {% endif %}
+        </div>
     </div>
     <div class="bill-content">
         {{ bill_html | safe }}
