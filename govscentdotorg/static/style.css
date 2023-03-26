@@ -58,4 +58,9 @@ body {
 .content .bill-content .text-center {
   text-align: center;
 }
+.content .bill-content .bullet {
+  max-width: 768px;
+  margin: 0 auto;
+  text-align: left;
+}
 /*# sourceMappingURL=style.css.map */
