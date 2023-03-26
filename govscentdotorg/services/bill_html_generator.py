@@ -32,11 +32,11 @@ def us_bill_text_to_html(text: str) -> str:
         elif is_bullet(line_stripped):
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
             next_line_index = index + 1
-            if next_line_index < len(lines) - 1:
+            if next_line_index < line_count - 1:
                 is_next_a_bullet = is_bullet(lines[next_line_index])
                 if not is_next_a_bullet:
                     next_next_line_index = index + 2
-                    if next_next_line_index < len(lines) - 1:
+                    if next_next_line_index < line_count - 1:
                         is_next_next_a_bullet = is_bullet(lines[next_next_line_index])
                         if is_next_next_a_bullet:
                             line_stripped += lines[next_line_index]  # lookahead
