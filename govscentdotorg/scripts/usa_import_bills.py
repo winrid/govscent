@@ -101,7 +101,10 @@ def get_bill_html(zipfile: ZipFile) -> str | None:
                     body_html += line + "\n"
             elif line.startswith("<body"):
                 in_body = True
-        return body_html.replace("\x00", "\uFFFD")
+        body_html = body_html.replace("\x00", "\uFFFD")
+        if len(body_html) == 0:
+            print(f'Could not find bill HTML in zip file! Was empty. {zipfile.filename}')
+        return body_html
 
     print(f'Could not find bill HTML in zip file! {zipfile.filename}')
 
@@ -146,7 +149,7 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
         gov_id = gov_group_id + bill_dir_info.get('status_code')
         print('Checking', gov_id, package_path)
         # Update the cached the latest revision.
-        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id", "gov_group_id").first()
+        existing_bill = Bill.objects.filter(gov="USA", gov_id=gov_id).only("id", "gov_group_id", "source_file_path").first()
         try:
             if not existing_bill:
                 print('Ingesting', gov_id, package_path, bill_dir_info)
@@ -160,7 +163,8 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
                     type=bill_dir_info['bill_type'],
                     text=get_bill_text(zip_file),
                     html=get_bill_html(zip_file),
-                    date=meta.get('date')
+                    date=meta.get('date'),
+                    source_file_path=package_path
                 )
                 bill.save()
                 recalculate_latest_revision_for_group(bill)
@@ -170,6 +174,11 @@ def run(data_dir: str, update_all_text: str, update_all_html: str, update_all_ca
                 if not existing_bill.gov_group_id:
                     existing_bill.gov_group_id = gov_group_id
                     existing_bill.save(update_fields=["gov_group_id"])
+
+                if not existing_bill.source_file_path:
+                    existing_bill.source_file_path = package_path
+                    existing_bill.save(update_fields=["source_file_path"])
+
                 if should_update_all_text or should_update_all_html:
                     zip_file = ZipFile(package_path, 'r')
                     if should_update_all_text:

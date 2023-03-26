@@ -40,6 +40,7 @@ class Bill(models.Model):
     is_latest_revision = models.BooleanField(default=False)
     title = models.TextField()
     type = models.CharField(max_length=50)
+    source_file_path = models.TextField(blank=True, null=True)
     text = models.TextField(default="")
     html = models.TextField(default="")
     date = models.DateField()
