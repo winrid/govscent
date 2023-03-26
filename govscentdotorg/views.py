@@ -25,7 +25,7 @@ def get_stats_cached() -> object:
             .annotate(year=TruncMonth('date'))
             .values('year')
             .annotate(score=Avg('on_topic_ranking'))
-            .order_by('year')
+            .order_by('date')
             .values('year', 'score')
         }
         cache.set('index_stats', index_stats)
