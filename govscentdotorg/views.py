@@ -1,4 +1,7 @@
+import json
+
 from django.core.cache import cache
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg
 from django.db.models.functions import TruncMonth
 from django.http import Http404
@@ -16,19 +19,25 @@ def get_index_bills_cached() -> [Bill]:
 
 
 def get_stats_cached() -> object:
-    index_stats = cache.get('index_stats')
+    key = 'index_stats_v2'
+    index_stats = cache.get(key)
     if not index_stats:
+        average_smelliness_by_year = Bill.objects\
+            .annotate(year=TruncMonth('date'))\
+            .values('year')\
+            .annotate(score=Avg('on_topic_ranking'))\
+            .order_by('year')\
+            .values('year', 'score')
+
+        average_smelliness_by_year_json = json.dumps(list(average_smelliness_by_year), cls=DjangoJSONEncoder)
+
         index_stats = {
             'count_bills': Bill.objects.count(),
             'count_bills_analyzed': Bill.objects.filter(on_topic_ranking__isnull=False).count(),
-            'average_smelliness_by_year': Bill.objects
-            .annotate(year=TruncMonth('date'))
-            .values('year')
-            .annotate(score=Avg('on_topic_ranking'))
-            .order_by('date')
-            .values('year', 'score')
+            'average_smelliness_by_year_json': average_smelliness_by_year_json
         }
-        cache.set('index_stats', index_stats)
+    cache.set(key, index_stats)
+
     return index_stats
 
 

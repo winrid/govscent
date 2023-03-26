@@ -7,12 +7,40 @@
         {% load humanize %}
         <div class="stats">
             <div class="stats-heading">
-                {{ stats.count_bills | intcomma }} bills. {{ stats.count_bills_analyzed | intcomma }} analyzed.
+                <h2>Stats</h2>
+                {{ stats.count_bills | intcomma }} bills ({{ stats.count_bills_analyzed | intcomma }} analyzed).
             </div>
             <div class="stats-smelliness-by-year">
-                {% for stat in stats.average_smelliness_by_year %}
-                    <div>{{ stat.year }} {{ stat.score }}</div>
-                {% endfor %}
+                {% load static %}
+                <script src="{% static 'chart.js' %}"></script>
+                <canvas id="smelliness-chart"></canvas>
+                <script>
+                    (function () {
+                        const ctx = document.getElementById('smelliness-chart');
+                        ctx.height = 300;
+
+                        new Chart(ctx, {
+                            type: 'line',
+                            data: {
+                                labels: ({{ stats.average_smelliness_by_year_json | safe }}).map((item) => item.year),
+                                datasets: [{
+                                    label: 'Bill Smelliness Over Time',
+                                    data: ({{ stats.average_smelliness_by_year_json | safe }}).map((item) => item.score !== null ? 10 - item.score : null),
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                height: 300,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true
+                                    }
+                                }
+                            }
+                        });
+                    })();
+                </script>
             </div>
         </div>
     {% endif %}
