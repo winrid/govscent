@@ -16,6 +16,10 @@ def us_bill_text_to_html(text: str) -> str:
             html += f"<h5 class='date'>{line_stripped}</h5>"
         elif line_stripped.isupper():
             html += f"<h2 class='text-center'>{line_stripped}</h3>"
+        elif line_stripped == "<DOC>":
+            continue
+        elif line_stripped.startswith('(') and line_stripped[2] == ')':
+            html += line + "<br>"
         else:
             html += line
             # We compress the text a little by removing some consecutive newline.s
