@@ -43,7 +43,19 @@ body {
 .content .bills .bill {
   margin: 15px 0;
 }
+.content .bill-content {
+  text-align: center;
+  letter-spacing: 0.5px;
+}
 .content .bill-content > div {
   margin: 0 auto;
+}
+.content .bill-content .separator {
+  max-width: 300px;
+  margin: 30px auto;
+  border-bottom: 1px solid #000;
+}
+.content .bill-content .text-center {
+  text-align: center;
 }
 /*# sourceMappingURL=style.css.map */

@@ -61,8 +61,21 @@ html, body {
   }
 
   .bill-content {
+    text-align: center;
+    letter-spacing: 0.5px;
+
     & > div {
       margin: 0 auto; // they have fixed width right now due to PDF parsing
+    }
+
+    .separator {
+      max-width: 300px;
+      margin: 30px auto;
+      border-bottom: 1px solid #000;
+    }
+
+    .text-center {
+      text-align: center;
     }
   }
 }

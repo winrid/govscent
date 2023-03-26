@@ -53,7 +53,11 @@ def bill_page(request, gov, gov_id):
     bill = Bill.objects.filter(gov__exact=gov, gov_id__exact=gov_id).first()
     if not bill:
         raise Http404
+
+    # We will add caching later. HTML generation lazily is nice because storage space is much lower and pure text compresses well.
+    # Also, this is much quicker to iterate on when needed.
+    bill_text = us_bill_text_to_html(bill.text)
     return render(request, 'bill.html', {
         'bill': bill,
-        'bill_html': us_bill_text_to_html(bill.text)  # We will add caching later. HTML generation lazily is nice because storage space is much lower and pure text compresses well.
+        'bill_html': bill_text
     })
