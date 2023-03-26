@@ -31,6 +31,7 @@ def us_bill_text_to_html(text: str) -> str:
             index += 1
             continue
         elif is_bullet(line_stripped):
+            # TODO keep track of bullet depth.
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
             next_line_index = index + 1
             if next_line_index < line_count - 1:
