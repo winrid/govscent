@@ -14,7 +14,7 @@ def us_bill_text_to_html(text: str) -> str:
         line_stripped = line.strip()
         if line_stripped.startswith("______________________________"):
             html += "<div class='separator'></div>"
-        elif line_stripped == "<DOC>":
+        elif line_stripped == "<DOC>" or line_stripped == "&lt;DOC&gt;":
             index += 1
             continue
         elif line_stripped.startswith('[') and line_stripped.endswith(']'):
