@@ -14,6 +14,9 @@ def us_bill_text_to_html(text: str) -> str:
         line_stripped = line.strip()
         if line_stripped.startswith("______________________________"):
             html += "<div class='separator'></div>"
+        elif line_stripped == "<DOC>":
+            index += 1
+            continue
         elif line_stripped.startswith('[') and line_stripped.endswith(']'):
             html += f"<h3 class='text-center'>{line_stripped.replace('[', '').replace(']', '')}</h3>"
         elif len(line_stripped) < 80 and line_stripped.endswith('CONGRESS'):
@@ -27,9 +30,6 @@ def us_bill_text_to_html(text: str) -> str:
                 html += f"<h3 class='text-center'>{line_stripped}</h3>"
             else:
                 html += f"<h2 class='text-center'>{line_stripped}</h2>"
-        elif line_stripped == "<DOC>":
-            index += 1
-            continue
         elif is_bullet(line_stripped):
             # TODO keep track of bullet depth.
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
