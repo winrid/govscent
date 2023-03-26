@@ -24,7 +24,7 @@ def us_bill_text_to_html(text: str) -> str:
             line_start_quotes_fixed = line.replace('``', '"')
             html += f"<div class='bullet'>{line_start_quotes_fixed}</div>"
         else:
-            html += line
+            html += line.replace('``', '"')
             # We compress the text a little by removing some consecutive newline.s
             if empty_line_count < 3 and len(line) < 50:
                 html += "<br>"
