@@ -1,8 +1,16 @@
+
+def is_bullet(text: str) -> bool:
+    return (text.startswith('(') and text[2] == ')') or text.startswith('``')
+
+
 def us_bill_text_to_html(text: str) -> str:
     lines = text.splitlines()
     html = ""
     empty_line_count = 0
-    for line in lines:
+    line_count = len(lines)
+    index = 0
+    while index < line_count:
+        line = lines[index]
         line_stripped = line.strip()
         if line_stripped.startswith("______________________________"):
             html += "<div class='separator'></div>"
@@ -21,14 +29,26 @@ def us_bill_text_to_html(text: str) -> str:
                 html += f"<h2 class='text-center'>{line_stripped}</h2>"
         elif line_stripped == "<DOC>":
             continue
-        elif line_stripped.startswith('(') and line_stripped[2] == ')':
-            if line_stripped[1].isnumeric():
-                html += f"<div class='bullet num'>{line}</div>"
+        elif is_bullet(line_stripped):
+            # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
+            next_line_index = index + 1
+            if next_line_index < len(lines) - 1:
+                is_next_a_bullet = is_bullet(lines[next_line_index])
+                if not is_next_a_bullet:
+                    next_next_line_index = index + 2
+                    if next_next_line_index < len(lines) - 1:
+                        is_next_next_a_bullet = is_bullet(lines[next_next_line_index])
+                        if is_next_next_a_bullet:
+                            line_stripped += lines[next_line_index]  # lookahead
+                            index += 1  # skip next line
+            if line_stripped.startswith('``'):
+                line_start_quotes_fixed = line_stripped.replace('``', '"')
+                html += f"<div class='bullet'>{line_start_quotes_fixed}</div>"
             else:
-                html += f"<div class='bullet alpha'>{line}</div>"
-        elif line_stripped.startswith('``'):
-            line_start_quotes_fixed = line.replace('``', '"')
-            html += f"<div class='bullet'>{line_start_quotes_fixed}</div>"
+                if line_stripped[1].isnumeric():
+                    html += f"<div class='bullet num'>{line_stripped}</div>"
+                else:
+                    html += f"<div class='bullet alpha'>{line_stripped}</div>"
         else:
             html += line.replace('``', '"')
             # We compress the text a little by removing some consecutive newline.s
