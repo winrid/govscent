@@ -28,6 +28,7 @@ def us_bill_text_to_html(text: str) -> str:
             else:
                 html += f"<h2 class='text-center'>{line_stripped}</h2>"
         elif line_stripped == "<DOC>":
+            index += 1
             continue
         elif is_bullet(line_stripped):
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
@@ -58,4 +59,5 @@ def us_bill_text_to_html(text: str) -> str:
                 empty_line_count += 1
             else:
                 empty_line_count = 0
+        index += 1
     return html
