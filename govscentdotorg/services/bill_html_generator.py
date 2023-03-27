@@ -53,7 +53,7 @@ def us_bill_text_to_html(text: str) -> str:
                     html += f"<div class='bullet alpha'>{line_stripped}</div>"
         else:
             html += line.replace('``', '"')
-            # We compress the text a little by removing some consecutive newline.s
+            # We compress the text a little by removing some consecutive newlines.
             if empty_line_count < 3 and len(line) < 50:
                 html += "<br>"
             if len(line_stripped) == 0:
