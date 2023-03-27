@@ -21,14 +21,23 @@
             {% if bill.topics %}
                 <h3>Bill Topics</h3>
                 <ol>
-                {% for topic in bill.topics.all %}
-                    <li>{{ topic.name }}</li>
-                {% endfor %}
+                    {% for topic in bill.topics.all %}
+                        <li>{{ topic.name }}</li>
+                    {% endfor %}
                 </ol>
             {% endif %}
         </div>
     </div>
-    <div class="bill-content">
-        {{ bill_html | safe }}
+    <div class="fastcomments-collab-chat">
+        <div id="fastcomments-collab-chat-widget bill-content">
+            {{ bill_html | safe }}
+        </div>
     </div>
+    <script src="https://cdn.fastcomments.com/js/embed-collab-chat.min.js"></script>
+    <script>
+        FastCommentsCollabChat(document.getElementById('fastcomments-collab-chat-widget'), {
+            tenantId: 'pZTrBhCJlsQB'
+        });
+    </script>
+
 {% endblock %}
