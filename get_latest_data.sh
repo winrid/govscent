@@ -5,7 +5,7 @@
 cd /home/winrid/congress
 python3 -m venv env
 source env/bin/activate
-usc-run govinfo --collections=BILLS --store=html,text --bulkdata=False
+usc-run govinfo --collections=BILLS --store=html --bulkdata=False
 
 cd /home/winrid/govscent
 python3 -m venv env
