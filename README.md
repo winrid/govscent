@@ -44,7 +44,7 @@ TODO - We will have an sqlite file you can download to get started with developm
 
 #### CI
 
-Merging to main will trigger a deploy. Deploys take around three seconds.
+Merging to main will trigger a deployment. Deploys take around three seconds.
 
 #### Scripts
 
