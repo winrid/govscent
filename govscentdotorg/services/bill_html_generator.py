@@ -1,6 +1,6 @@
 
 def is_bullet(text: str) -> bool:
-    return (text.startswith('(') and text[2] == ')') or text.startswith('``')
+    return (text.startswith('(') and text[2] == ')') or text.startswith('``') or text.startswith('Whereas')
 
 
 def us_bill_text_to_html(text: str) -> str:
@@ -32,6 +32,7 @@ def us_bill_text_to_html(text: str) -> str:
                 html += f"<h2 class='text-center'>{line_stripped}</h2>"
         elif is_bullet(line_stripped):
             # TODO keep track of bullet depth.
+            # TODO lookahead N lines to next bullet.
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
             next_line_index = index + 1
             if next_line_index < line_count - 1:
@@ -54,7 +55,7 @@ def us_bill_text_to_html(text: str) -> str:
         else:
             html += line.replace('``', '"')
             # We compress the text a little by removing some consecutive newlines.
-            if empty_line_count < 3 and len(line) < 50:
+            if empty_line_count < 2 and len(line) < 50:
                 html += "<br>"
             if len(line_stripped) == 0:
                 empty_line_count += 1
