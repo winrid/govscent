@@ -32,18 +32,16 @@ def us_bill_text_to_html(text: str) -> str:
                 html += f"<h2 class='text-center'>{line_stripped}</h2>"
         elif is_bullet(line_stripped):
             # TODO keep track of bullet depth.
-            # TODO lookahead N lines to next bullet.
             # If the next line after this is not a bullet, and the line after is, for now we assume that the next line is a continuation of this one.
-            next_line_index = index + 1
-            if next_line_index < line_count - 1:
-                is_next_a_bullet = is_bullet(lines[next_line_index])
-                if not is_next_a_bullet:
-                    next_next_line_index = index + 2
-                    if next_next_line_index < line_count - 1:
-                        is_next_next_a_bullet = is_bullet(lines[next_next_line_index])
-                        if is_next_next_a_bullet:
-                            line_stripped += lines[next_line_index]  # lookahead
-                            index += 1  # skip next line
+            bullet_index = index + 1
+            stopped = False
+            # lookahead N lines to next bullet. Example: 118hres190ih
+            while not stopped and bullet_index < line_count and len(lines[bullet_index]) > 0:
+                if is_bullet(lines[bullet_index]):
+                    stopped = True
+                else:
+                    line_stripped += lines[bullet_index]
+                    bullet_index += 1
             if line_stripped.startswith('``'):
                 line_start_quotes_fixed = line_stripped.replace('``', '"')
                 html += f"<div class='bullet quoted'>{line_start_quotes_fixed}</div>"
