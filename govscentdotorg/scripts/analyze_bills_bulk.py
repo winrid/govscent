@@ -29,7 +29,7 @@ def run():
     print(f'Running for {len(years)} year buckets.')
 
     processes = [
-        Popen([f'python3.10 manage.py runscript analyze_bills --script-args False {year}'], stdout=PIPE, stderr=PIPE)
+        Popen([f'python3.10 manage.py runscript analyze_bills --script-args False {year}'], shell=True, stdout=PIPE, stderr=PIPE)
         for year in years
     ]
 
