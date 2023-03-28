@@ -32,9 +32,9 @@ TODO - We will have an sqlite file you can download to get started with developm
 
 #### Data Flow
 
-1. Congress Data Sources.
-2. On-Disk data structures (for now, may be removed in future to save disk space)
-3. Local Database (SQLite locally, Postgresql in prod)
+1. From Congress Data Sources.
+2. → Then to On-Disk data structures (for now, may be removed in future to save disk space)
+3. → Then to Local Database (SQLite locally, Postgresql in prod)
 4. Analysis performed via cron and Python scripts.
 5. Analysis results saved in Postgresql. We parse the response from GPT to extract the topic rating and topics list, and we also store the raw response, so it can be re-parsed without calling OpenAI.
 6. Any errors from the API are also stored on the `Bill` for analysis and re-running later.
