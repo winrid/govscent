@@ -60,7 +60,7 @@ body {
 }
 .content .bill-content .bullet {
   max-width: 768px;
-  margin: 5px auto;
+  margin: 20px auto;
   text-align: left;
 }
 .content .bill-content .bullet.num,
