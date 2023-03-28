@@ -109,7 +109,7 @@ def analyze_bill(bill: Bill, ai_text: str):
     bill.save()
 
 
-def run(arg_reparse_only: str):
+def run(arg_reparse_only: str, year: str | None = None):
     reparse_only = arg_reparse_only == 'True'
 
     if not reparse_only:
@@ -120,6 +120,12 @@ def run(arg_reparse_only: str):
     bills = Bill.objects.filter(is_latest_revision=True, last_analyzed_at__isnull=False) \
         .only("id", "gov_id", "text") if reparse_only else Bill.objects.filter(
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text")
+
+    if year is not None:
+        print(f"Will analyze bills for the year {year}.")
+        bills = bills.filter(date__year=int(year))
+    else:
+        print(f"Will analyze bills for all years.")
 
     print(f"Will analyze {len(bills)} bills.")
     for bill in bills:
