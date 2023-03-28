@@ -40,7 +40,7 @@ TODO - We will have an sqlite file you can download to get started with developm
 6. Any errors from the API are also stored on the `Bill` for analysis and re-running later.
 7. The `Bill` only contains the **raw text** as well as the response from the language model.
 8. The pretty HTML version of the bill is generated at runtime via [govscentdotorg/services/bill_html_generator.py](govscentdotorg/services/bill_html_generator.py).
-9. The pretty HTML is cached on disk for a short time. This saves significant disk space compared to saving millions of HTML or PDF files. 
+9. The pretty HTML is cached on disk for a short time to save CPU if a page goes viral. This saves significant disk space compared to saving millions of HTML or PDF files. 
 
 #### CI
 
