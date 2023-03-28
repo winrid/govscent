@@ -37,7 +37,7 @@ def us_bill_text_to_html(text: str) -> str:
             stopped = False
             # lookahead N lines to next bullet. Example: 118hres190ih
             while not stopped and bullet_index < line_count and len(lines[bullet_index]) > 0:
-                if is_bullet(lines[bullet_index]):
+                if is_bullet(lines[bullet_index].strip()):
                     stopped = True
                 else:
                     line_stripped += lines[bullet_index]
