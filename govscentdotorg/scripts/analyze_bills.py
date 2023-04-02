@@ -7,6 +7,7 @@ import openai
 WORDS_MAX = 3000
 model = "gpt-3.5-turbo"
 
+
 def extract_response_topics(response: str) -> [str]:
     [top_10_index, is_single_topic] = get_top_10_index(response)
     lines = response[top_10_index:].splitlines()
@@ -31,15 +32,15 @@ def extract_response_topics(response: str) -> [str]:
         topics = []
         for line in lines[1:10]:
             if len(line) > 2:
-                if line[0].isnumeric():
+                if line[0].isnumeric() or line.startswith("-"):
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
                     first_period_index = line.find(".")
                     if first_period_index > -1:
                         line_after_first_number = line[first_period_index + 1:].strip()
                         topics.append(line_after_first_number)
                     else:
-                        line_after_first_number = line[1:].strip()
-                        topics.append(line_after_first_number)
+                        line_after_first_char = line[1:].strip()
+                        topics.append(line_after_first_char)
                 else:
                     # end of topics
                     break
@@ -66,19 +67,24 @@ def set_topics(bill: Bill, response: str):
 
 # Gets the index and whether we're dealing with a single topic in the response.
 def get_top_10_index(response: str) -> (int, bool):
-    # noinspection PyBroadException
-    try:
-        index = response.index("Top 10")
+    index = response.find("Top 10")
+    if index > -1:
         return index, False
-    except ValueError:
-        try:
-            index = response.index("Topic:")
-            return index, True
-        except ValueError:
-            if response[:2] == "1.":
-                return 0, False
-            else:
-                raise ValueError
+
+    index = response.find("Topic:")
+    if index > -1:
+        return index, True
+
+    if response[:2] == "1.":
+        return 0, False
+
+    list_start_index = response.find('1.')
+    if list_start_index > -1:
+        return list_start_index, False
+
+    list_start_index = response.find('-')
+    if list_start_index > -1:
+        return list_start_index, False
 
 
 def set_focus_and_summary(bill: Bill, response: str):
@@ -86,7 +92,10 @@ def set_focus_and_summary(bill: Bill, response: str):
     # Example: Ranking on staying on topic: 10/10.
     # Very dirty and naughty but fast.
     topic_ranking_end_token = "/10"
-    topic_ranking_index = response.index(topic_ranking_end_token)
+    topic_ranking_index = response.find(topic_ranking_end_token)
+    if topic_ranking_index == -1:
+        print(f"Warning, no ranking or summary found for {bill.gov_id}.")
+        return
     # cast to int and round incase ranking like 0.5
     topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
     bill.on_topic_ranking = topic_ranking
@@ -183,7 +192,10 @@ def get_bill_sections_prompt(bill: Bill) -> str:
             print(completion)
             response_text = completion.choices[0].message.content
             print(response_text)
-            chunks[index] = response_text
+            if response_text.startswith('I apologize') or response_text.startswith("I'm sorry"):
+                chunks[index] = ''
+            else:
+                chunks[index] = response_text
         sections_topics_text = "\n".join(chunks)
         print(f"Reduced topic summary to {len(sections_topics_text.split(' '))} words.")
     return sections_topics_text
@@ -264,11 +276,11 @@ def run(arg_reparse_only: str, year: str | None = None):
         openai.api_key = os.getenv("OPENAI_API_KEY")
 
     print('Finding bills to analyze...')
-    bills = Bill.objects.filter(is_latest_revision=True, last_analyzed_at__isnull=False) \
+    bills = Bill.objects.filter(is_latest_revision=True) \
         .only("id", "gov_id", "text", "bill_sections") if reparse_only else Bill.objects.filter(
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
-    #bills = bills.filter(gov_id="114s2943enr")
+    # bills = bills.filter(gov_id="114s2943enr")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
