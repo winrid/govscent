@@ -85,7 +85,8 @@ def set_focus_and_summary(bill: Bill, response: str):
     # Very dirty and naughty but fast.
     topic_ranking_end_token = "/10"
     topic_ranking_index = response.index(topic_ranking_end_token)
-    topic_ranking = response[topic_ranking_index - 2:topic_ranking_index].strip()
+    # cast to int and round incase ranking like 0.5
+    topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
     bill.on_topic_ranking = topic_ranking
     top_10_index = get_top_10_index(response)[0]
 
@@ -248,4 +249,7 @@ def run(arg_reparse_only: str, year: str | None = None):
         except Exception as e:
             print(f"Failed for {bill.gov_id}", e)
             bill.last_analyze_error = str(e)
-            bill.save()
+            try:
+                bill.save()
+            except Exception as e:
+                print(f"Failed to save last_analyze_error for {bill.gov_id}", e)
