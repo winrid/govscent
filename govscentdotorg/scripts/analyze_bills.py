@@ -127,10 +127,13 @@ def create_word_sections_from_lines(max_words: int, text: str) -> [str]:
     pieces = []
     piece = ""
     for line in text.splitlines():
-        piece += line + "\n"
-        if len(piece.split(" ")) >= max_words:
+        if len(piece.split(" ")) + len(line.split(" ")) >= max_words:
             pieces.append(piece)
             piece = ""
+        else:
+            piece += line + "\n"
+    if len(piece) > 0:
+        pieces.append(piece)
     return pieces
 
 
@@ -171,6 +174,7 @@ def get_bill_sections_prompt(bill: Bill) -> str:
         chunks = create_word_sections_from_lines(WORDS_MAX, sections_topics_text)
         print(f"Topic list long, reduced to {len(chunks)} chunks for {bill.gov_id}.")
         for index, chunk in enumerate(chunks):
+            print(f"Summarizing chunk {index}")
             prompt = f"List the top 10 most important topics the following text:\n{chunk}"
             completion = openai.ChatCompletion.create(model=model, messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
