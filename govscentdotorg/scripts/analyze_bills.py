@@ -174,7 +174,7 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
     if not reparse_only:
         for index, section in enumerate(sections):
             if not section.last_analyze_response:
-                print(f"Processing section {index + 1}/{len(sections)}")
+                print(f"Processing section {index + 1}/{len(sections)} of {bill.gov_id}")
                 # If we can, this is done all in one prompt to try to reduce # of tokens.
                 prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.text}" \
                     if len(sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
@@ -190,16 +190,15 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
                 section.save(update_fields=['last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
                 bill.last_analyze_response = response_text
                 bill.last_analyze_model = model
-                bill.last_analyze_error = None
-                bill.save(update_fields=['last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
+                bill.save(update_fields=['last_analyze_response', 'last_analyze_model'])
             else:
                 print(f"Section {index + 1}/{len(sections)} already processed, skipping.")
             if len(sections) == 1:
                 bill.final_analyze_response = section.last_analyze_response
                 bill.save(update_fields=['final_analyze_response'])
-            print(f"Processed section {index + 1}/{len(sections)}")
+            print(f"Processed section {index + 1}/{len(sections)} of {bill.gov_id}")
         if len(sections) > 1:
-            print(f"Processed {len(sections)} sections. Summarizing.")
+            print(f"Processed {len(sections)} sections of {bill.gov_id}. Summarizing.")
             # TODO this may still fail on very large bills, will have to do recursive map reduce.
             prompt_text = get_bill_sections_prompt(bill)
             prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{prompt_text}"
