@@ -157,7 +157,7 @@ def is_ready_for_processing(bill: Bill) -> bool:
     return True
 
 
-def get_bill_sections_prompt(bill: Bill) -> str:
+def reduce_topics(bill: Bill) -> str:
     sections_topics_text = ""
     for section in bill.bill_sections.all():
         section_topic_lines = section.last_analyze_response.splitlines()
@@ -245,17 +245,9 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             print(f"Processed section {index + 1}/{len(sections)} of {bill.gov_id}")
         if len(sections) > 1:
             print(f"Processed {len(sections)} sections of {bill.gov_id}. Summarizing.")
-            prompt_text = get_bill_sections_prompt(bill)
-            # TODO support summarization and ranking for very long bills.
-            prompt = f"List the top 10 most important topics the following text:\n{prompt_text}"
-            completion = openai.ChatCompletion.create(model=model, messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ])
-            print(completion)
-            response_text = completion.choices[0].message.content
-            bill.final_analyze_response = response_text
-            bill.last_analyze_response = response_text
+            topics_list = reduce_topics(bill)
+            bill.final_analyze_response = topics_list
+            bill.last_analyze_response = topics_list
             bill.last_analyze_model = model
             bill.last_analyze_error = None
             bill.save(update_fields=['final_analyze_response', 'last_analyze_response', 'last_analyze_model',
