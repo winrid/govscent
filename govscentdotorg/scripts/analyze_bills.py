@@ -4,6 +4,8 @@ import os
 from govscentdotorg.models import Bill, BillTopic, BillSection
 import openai
 
+WORDS_MAX = 3000
+model = "gpt-3.5-turbo"
 
 def extract_response_topics(response: str) -> [str]:
     [top_10_index, is_single_topic] = get_top_10_index(response)
@@ -116,9 +118,20 @@ def process_analyzed_bill_sections(bill: Bill):
     bill.save()
 
 
-def create_word_sections(n: int, s: str) -> [str]:
-    pieces = s.split(" ")
-    return (" ".join(pieces[i:i + n]) for i in range(0, len(pieces), n))
+def create_word_sections(max_words: int, text: str) -> [str]:
+    pieces = text.split(" ")
+    return (" ".join(pieces[i:i + max_words]) for i in range(0, len(pieces), max_words))
+
+
+def create_word_sections_from_lines(max_words: int, text: str) -> [str]:
+    pieces = []
+    piece = ""
+    for line in text.splitlines():
+        piece += line + "\n"
+        if len(piece.split(" ")) >= max_words:
+            pieces.append(piece)
+            piece = ""
+    return pieces
 
 
 def is_ready_for_processing(bill: Bill) -> bool:
@@ -153,13 +166,29 @@ def get_bill_sections_prompt(bill: Bill) -> str:
             elif stripped.startswith('Topic:'):
                 stripped = stripped.replace('Topic:', '')
             sections_topics_text += stripped.strip() + "\n"
+    # this may still fail on very large bills, have to do recursive map reduce.
+    while len(sections_topics_text.split(" ")) > WORDS_MAX:
+        chunks = create_word_sections_from_lines(WORDS_MAX, sections_topics_text)
+        print(f"Topic list long, reduced to {len(chunks)} chunks for {bill.gov_id}.")
+        for index, chunk in enumerate(chunks):
+            prompt = f"List the top 10 most important topics the following text:\n{chunk}"
+            completion = openai.ChatCompletion.create(model=model, messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ])
+            print(completion)
+            response_text = completion.choices[0].message.content
+            print(response_text)
+            chunks[index] = response_text
+        sections_topics_text = "\n".join(chunks)
     return sections_topics_text
+
 
 def analyze_bill_sections(bill: Bill, reparse_only: bool):
     if not bill.bill_sections or len(bill.bill_sections.all()) == 0:
         print('Setting up bill sections.')
         sections = []
-        chunks_of_words = create_word_sections(3000, bill.text)
+        chunks_of_words = create_word_sections(WORDS_MAX, bill.text)
         for chunk in chunks_of_words:
             section = BillSection(
                 text=chunk
@@ -169,7 +198,6 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
         bill.bill_sections.set(sections)
         bill.save()
 
-    model = "gpt-3.5-turbo"
     sections = bill.bill_sections.all()
     if not reparse_only:
         for index, section in enumerate(sections):
@@ -177,7 +205,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
                 print(f"Processing section {index + 1}/{len(sections)} of {bill.gov_id}")
                 # If we can, this is done all in one prompt to try to reduce # of tokens.
                 prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.text}" \
-                    if len(sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
+                    if len(
+                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
                 completion = openai.ChatCompletion.create(model=model, messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": prompt}
@@ -199,7 +228,6 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             print(f"Processed section {index + 1}/{len(sections)} of {bill.gov_id}")
         if len(sections) > 1:
             print(f"Processed {len(sections)} sections of {bill.gov_id}. Summarizing.")
-            # TODO this may still fail on very large bills, will have to do recursive map reduce.
             prompt_text = get_bill_sections_prompt(bill)
             prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{prompt_text}"
             completion = openai.ChatCompletion.create(model=model, messages=[
@@ -212,7 +240,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             bill.last_analyze_response = response_text
             bill.last_analyze_model = model
             bill.last_analyze_error = None
-            bill.save(update_fields=['final_analyze_response', 'last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
+            bill.save(update_fields=['final_analyze_response', 'last_analyze_response', 'last_analyze_model',
+                                     'last_analyze_error'])
     else:
         print(f"Processed {len(sections)} sections. Done.")
     if is_ready_for_processing(bill):
@@ -232,6 +261,8 @@ def run(arg_reparse_only: str, year: str | None = None):
     bills = Bill.objects.filter(is_latest_revision=True, last_analyzed_at__isnull=False) \
         .only("id", "gov_id", "text", "bill_sections") if reparse_only else Bill.objects.filter(
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
+
+    #bills = bills.filter(gov_id="114s2943enr")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
