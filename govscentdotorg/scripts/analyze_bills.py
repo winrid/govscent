@@ -185,6 +185,7 @@ def get_bill_sections_prompt(bill: Bill) -> str:
             print(response_text)
             chunks[index] = response_text
         sections_topics_text = "\n".join(chunks)
+        print(f"Reduced topic summary to {len(sections_topics_text.split(' '))} words.")
     return sections_topics_text
 
 
@@ -233,7 +234,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
         if len(sections) > 1:
             print(f"Processed {len(sections)} sections of {bill.gov_id}. Summarizing.")
             prompt_text = get_bill_sections_prompt(bill)
-            prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{prompt_text}"
+            # TODO support summarization and ranking for very long bills.
+            prompt = f"List the top 10 most important topics the following text:\n{prompt_text}"
             completion = openai.ChatCompletion.create(model=model, messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": prompt}
