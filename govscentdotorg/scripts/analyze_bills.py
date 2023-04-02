@@ -171,10 +171,10 @@ def get_bill_sections_prompt(bill: Bill) -> str:
             sections_topics_text += stripped.strip() + "\n"
     # this may still fail on very large bills, have to do recursive map reduce.
     while len(sections_topics_text.split(" ")) > WORDS_MAX:
-        chunks = create_word_sections_from_lines(WORDS_MAX, sections_topics_text)
+        chunks = create_word_sections_from_lines(int(WORDS_MAX / 2), sections_topics_text)
         print(f"Topic list long, reduced to {len(chunks)} chunks for {bill.gov_id}.")
         for index, chunk in enumerate(chunks):
-            print(f"Summarizing chunk {index}")
+            print(f"Summarizing chunk {index} with {len(chunk.split(' '))} words.")
             prompt = f"List the top 10 most important topics the following text:\n{chunk}"
             completion = openai.ChatCompletion.create(model=model, messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
