@@ -233,8 +233,6 @@ def run(arg_reparse_only: str, year: str | None = None):
         .only("id", "gov_id", "text", "bill_sections") if reparse_only else Bill.objects.filter(
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
-    bills = bills.filter(gov_id="114hres662ih")
-
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
         bills = bills.filter(date__year=int(year))
