@@ -1,7 +1,7 @@
 import datetime
 import os
 
-from govscentdotorg.models import Bill, BillTopic
+from govscentdotorg.models import Bill, BillTopic, BillSection
 import openai
 
 
@@ -16,9 +16,13 @@ def extract_response_topics(response: str) -> [str]:
             line = lines[1]
             if line.isnumeric():
                 # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
-                first_period_index = line.index(".")
-                line_after_first_number = line[first_period_index + 1:].strip()
-                return [line_after_first_number]
+                first_period_index = line.find(".")
+                if first_period_index > -1:
+                    line_after_first_number = line[first_period_index + 1:].strip()
+                    return [line_after_first_number]
+                else:
+                    line_after_first_number = line[1:].strip()
+                    return [line_after_first_number]
             else:
                 return line.strip()
     else:
@@ -27,9 +31,13 @@ def extract_response_topics(response: str) -> [str]:
             if len(line) > 2:
                 if line[0].isnumeric():
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
-                    first_period_index = line.index(".")
-                    line_after_first_number = line[first_period_index + 1:].strip()
-                    topics.append(line_after_first_number)
+                    first_period_index = line.find(".")
+                    if first_period_index > -1:
+                        line_after_first_number = line[first_period_index + 1:].strip()
+                        topics.append(line_after_first_number)
+                    else:
+                        line_after_first_number = line[1:].strip()
+                        topics.append(line_after_first_number)
                 else:
                     # end of topics
                     break
@@ -89,7 +97,8 @@ def set_focus_and_summary(bill: Bill, response: str):
 
         if summary_index < topic_ranking_index and len(response[topic_ranking_index:]) > 50:
             bill.on_topic_reasoning = response[topic_ranking_index + (len(topic_ranking_end_token)):].strip()
-            if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == "." or bill.on_topic_reasoning[2] == ".":
+            if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == "." or bill.on_topic_reasoning[
+                2] == ".":
                 bill.on_topic_reasoning = bill.on_topic_reasoning[bill.on_topic_reasoning.index(" "):].strip()
     except ValueError:
         # Text did not contain "Summary:". So, maybe it's in the format of <topics>\n\n<ranking><summary>
@@ -97,16 +106,119 @@ def set_focus_and_summary(bill: Bill, response: str):
         # TODO set reasoning
 
 
-def analyze_bill(bill: Bill, ai_text: str):
-    # Save here in case the next steps error out so we can debug.
-    # Only save last_analyze_response as an optimization.
-    bill.save(update_fields=['last_analyze_response'])
-    set_topics(bill, ai_text)
-    set_focus_and_summary(bill, ai_text)
+def process_analyzed_bill_sections(bill: Bill):
+    set_topics(bill, bill.final_analyze_response)
+    set_focus_and_summary(bill, bill.final_analyze_response)
     bill.last_analyzed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     bill.last_analyze_error = None
     # Now just save everything.
     bill.save()
+
+
+def create_word_sections(n: int, s: str) -> [str]:
+    pieces = s.split(" ")
+    return (" ".join(pieces[i:i + n]) for i in range(0, len(pieces), n))
+
+
+def is_ready_for_processing(bill: Bill) -> bool:
+    if bill.last_analyze_response is None:
+        return False
+    if bill.final_analyze_response is None:
+        return False
+    for section in bill.bill_sections.all():
+        if not section.last_analyze_response:
+            return False
+    return True
+
+
+def get_bill_sections_prompt(bill: Bill) -> str:
+    sections_topics_text = ""
+    for section in bill.bill_sections.all():
+        section_topic_lines = section.last_analyze_response.splitlines()
+        for line in section_topic_lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            # Remove bullets which might confuse AI if we go 1. 2. 3. 1. 2. 3.
+            # Looking for pattern like: "1." or "1 ." or "1-" or "1 -"
+            # Easier to understand/debug/step through than regex.
+            if stripped[0].isnumeric():
+                if stripped[1] == "." or stripped[1] == "-":
+                    stripped = stripped[2:]
+                elif stripped[2] == "." or stripped[2] == "-":
+                    stripped = stripped[3:]
+            elif stripped[0] == "-":
+                stripped = stripped[1:]
+            elif stripped.startswith('Topic:'):
+                stripped = stripped.replace('Topic:', '')
+            sections_topics_text += stripped.strip() + "\n"
+    return sections_topics_text
+
+def analyze_bill_sections(bill: Bill, reparse_only: bool):
+    if not bill.bill_sections or len(bill.bill_sections.all()) == 0:
+        print('Setting up bill sections.')
+        sections = []
+        chunks_of_words = create_word_sections(3000, bill.text)
+        for chunk in chunks_of_words:
+            section = BillSection(
+                text=chunk
+            )
+            section.save()
+            sections.append(section)
+        bill.bill_sections.set(sections)
+        bill.save()
+
+    model = "gpt-3.5-turbo"
+    sections = bill.bill_sections.all()
+    if not reparse_only:
+        for index, section in enumerate(sections):
+            if not section.last_analyze_response:
+                print(f"Processing section {index + 1}/{len(sections)}")
+                # If we can, this is done all in one prompt to try to reduce # of tokens.
+                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.text}" \
+                    if len(sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
+                completion = openai.ChatCompletion.create(model=model, messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": prompt}
+                ])
+                print(completion)
+                response_text = completion.choices[0].message.content
+                section.last_analyze_response = response_text
+                section.last_analyze_model = model
+                section.last_analyze_error = None
+                section.save(update_fields=['last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
+                bill.last_analyze_response = response_text
+                bill.last_analyze_model = model
+                bill.last_analyze_error = None
+                bill.save(update_fields=['last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
+            else:
+                print(f"Section {index + 1}/{len(sections)} already processed, skipping.")
+            if len(sections) == 1:
+                bill.final_analyze_response = section.last_analyze_response
+                bill.save(update_fields=['final_analyze_response'])
+            print(f"Processed section {index + 1}/{len(sections)}")
+        if len(sections) > 1:
+            print(f"Processed {len(sections)} sections. Summarizing.")
+            # TODO this may still fail on very large bills, will have to do recursive map reduce.
+            prompt_text = get_bill_sections_prompt(bill)
+            prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{prompt_text}"
+            completion = openai.ChatCompletion.create(model=model, messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt}
+            ])
+            print(completion)
+            response_text = completion.choices[0].message.content
+            bill.final_analyze_response = response_text
+            bill.last_analyze_response = response_text
+            bill.last_analyze_model = model
+            bill.last_analyze_error = None
+            bill.save(update_fields=['final_analyze_response', 'last_analyze_response', 'last_analyze_model', 'last_analyze_error'])
+    else:
+        print(f"Processed {len(sections)} sections. Done.")
+    if is_ready_for_processing(bill):
+        process_analyzed_bill_sections(bill)
+    else:
+        print(f"Bill {bill.gov_id} not yet ready for processing!")
 
 
 def run(arg_reparse_only: str, year: str | None = None):
@@ -118,8 +230,10 @@ def run(arg_reparse_only: str, year: str | None = None):
 
     print('Finding bills to analyze...')
     bills = Bill.objects.filter(is_latest_revision=True, last_analyzed_at__isnull=False) \
-        .only("id", "gov_id", "text") if reparse_only else Bill.objects.filter(
-        is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text")
+        .only("id", "gov_id", "text", "bill_sections") if reparse_only else Bill.objects.filter(
+        is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
+
+    bills = bills.filter(gov_id="114hres662ih")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
@@ -132,21 +246,8 @@ def run(arg_reparse_only: str, year: str | None = None):
         print(F"Analyzing {bill.gov_id}")
         # print(f"Analyzing {bill.text}")
         try:
-            if not reparse_only:
-                # This is done all in one prompt to try to reduce # of tokens.
-                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{bill.text}"
-                completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
-                ])
-                print(completion)
-                response_text = completion.choices[0].message.content
-                bill.last_analyze_response = response_text
-                analyze_bill(bill, response_text)
-            elif bill.last_analyze_response is not None:
-                analyze_bill(bill, bill.last_analyze_response)
-
+            analyze_bill_sections(bill, reparse_only)
         except Exception as e:
             print(f"Failed for {bill.gov_id}", e)
             bill.last_analyze_error = str(e)
-            bill.save(update_fields=['last_analyze_error'])
+            bill.save()

@@ -29,6 +29,13 @@ class BillSmell(models.Model):
         return self.name
 
 
+class BillSection(models.Model):
+    text = models.TextField()
+    last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
+    last_analyze_error = models.TextField(default=None, blank=True, null=True)
+    last_analyze_response = models.TextField(default=None, blank=True, null=True)
+
+
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
     # For the USA: congress + bill type + bill #
@@ -46,6 +53,9 @@ class Bill(models.Model):
     last_analyzed_at = models.DateTimeField(default=None, null=True)
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
+    final_analyze_response = models.TextField(default=None, blank=True, null=True)
+    last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
+    bill_sections = models.ManyToManyField(BillSection, related_name="sections")
 
     topics = models.ManyToManyField(BillTopic, related_name="topics")
     text_summary = models.TextField(default=None, blank=True, null=True)
@@ -110,4 +120,18 @@ class BillAdmin(NumericFilterModelAdmin):
     list_display = ('title', 'on_topic_ranking', 'date')
     list_filter = ('is_latest_revision', ('on_topic_ranking', RangeNumericFilter))
     search_fields = ('gov_id',)
-    raw_id_fields = ('topics',)
+    raw_id_fields = ('topics', 'bill_sections')
+    readonly_fields = ('section_links',)
+
+    def section_links(self, obj):
+        html = '<ol>'
+        sections = BillSection.objects.filter(sections__in=[obj]).only('id')
+        for section in sections:
+            html += f'<li><a href="{reverse("admin:govscentdotorg_billsection_change", args=(section.pk,))}">{section.id}</a></li>'
+        html += '</ol>'
+        return mark_safe(html)
+    section_links.short_description = 'Sections'
+
+
+class BillSectionAdmin(admin.ModelAdmin):
+    list_display = ('id', 'last_analyze_error')
