@@ -69,7 +69,7 @@ def set_topics(bill: Bill, response: str):
 
 
 # Gets the index and whether we're dealing with a single topic in the response.
-def get_top_10_index(bill: Bill, response: str) -> (int, bool):
+def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
     index = response.find("Top 10")
     if index > -1:
         return index, False, False
@@ -108,7 +108,7 @@ def set_focus_and_summary(bill: Bill, response: str):
     # cast to int and round incase ranking like 0.5
     topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
     bill.on_topic_ranking = topic_ranking
-    [top_10_index, _is_single_topic] = get_top_10_index(bill, response)
+    [top_10_index, _is_single_topic, _] = get_top_10_index(bill, response)
 
     if top_10_index == -1:
         print(f"Warning, no ranking or summary found for {bill.gov_id}.")
