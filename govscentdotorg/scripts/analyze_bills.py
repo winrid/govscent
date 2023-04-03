@@ -8,8 +8,8 @@ WORDS_MAX = 3000
 model = "gpt-3.5-turbo"
 
 
-def extract_response_topics(response: str) -> [str]:
-    [top_10_index, is_single_topic] = get_top_10_index(response)
+def extract_response_topics(bill: Bill, response: str) -> [str]:
+    [top_10_index, is_single_topic] = get_top_10_index(bill, response)
     lines = response[top_10_index:].splitlines()
     if is_single_topic:
         if len(lines[0]) > 10:
@@ -57,7 +57,7 @@ def get_topic_by_text(text: str) -> BillTopic:
 
 
 def set_topics(bill: Bill, response: str):
-    topic_texts = extract_response_topics(response)
+    topic_texts = extract_response_topics(bill, response)
     topics = []
     for topic_text in topic_texts:
         topic = get_topic_by_text(topic_text)
