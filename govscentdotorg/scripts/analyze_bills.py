@@ -70,26 +70,26 @@ def set_topics(bill: Bill, response: str):
 def get_top_10_index(bill: Bill, response: str) -> (int, bool):
     index = response.find("Top 10")
     if index > -1:
-        return index, False
+        return index, False, False
 
     index = response.find("Topic:")
     if index > -1:
-        return index, True
+        return index, True, False
 
     if response[:2] == "1.":
-        return 0, False
+        return 0, False, False
 
     list_start_index = response.find('1.')
     if list_start_index > -1:
-        return list_start_index, False
+        return list_start_index, False, False
 
     list_start_index = response.find('-')
     if list_start_index > -1:
-        return list_start_index, False
+        return list_start_index, False, False
 
     # In this case, probably just a raw list of topics by line.
     if len(bill.bill_sections.all()) > 1:
-        return 0, False
+        return 0, False, True
 
     return -1, False, True
 
