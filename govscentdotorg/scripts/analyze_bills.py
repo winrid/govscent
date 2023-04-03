@@ -87,7 +87,7 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool):
         return list_start_index, False
 
     # In this case, probably just a raw list of topics by line.
-    if len(bill.bill_sections.all()) > 2:
+    if len(bill.bill_sections.all()) > 1:
         return 0, False
 
 
