@@ -57,15 +57,15 @@ class Bill(models.Model):
     last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
     bill_sections = models.ManyToManyField(BillSection, related_name="sections")
 
-    topics = models.ManyToManyField(BillTopic, related_name="topics")
+    topics = models.ManyToManyField(BillTopic, related_name="topics", blank=True)
     text_summary = models.TextField(default=None, blank=True, null=True)
-    smells = models.ManyToManyField(BillSmell)
-    on_topic_ranking = models.PositiveSmallIntegerField(default=None, null=True, validators=[
+    smells = models.ManyToManyField(BillSmell, blank=True)
+    on_topic_ranking = models.PositiveSmallIntegerField(default=None, blank=True, null=True, validators=[
         MinValueValidator(0),
         MaxValueValidator(100)
     ])
     on_topic_reasoning = models.TextField(default=None, blank=True, null=True)
-    smelliness = models.IntegerField(default=None, null=True, validators=[
+    smelliness = models.IntegerField(default=None, blank=True, null=True, validators=[
         MinValueValidator(0),
         MaxValueValidator(100),
     ])
