@@ -189,9 +189,10 @@ def reduce_topics(bill: Bill) -> str:
                 stripped = stripped.replace('Topic:', '')
             sections_topics_text += stripped.strip() + "\n"
     # this may still fail on very large bills, have to do recursive map reduce.
-    while len(sections_topics_text.split(" ")) > WORDS_MAX:
+    iterations = 0
+    while len(sections_topics_text.split(" ")) > WORDS_MAX and iterations <= 10_000:
         chunks = create_word_sections_from_lines(int(WORDS_MAX / 2), sections_topics_text)
-        print(f"Topic list long, reduced to {len(chunks)} chunks for {bill.gov_id}.")
+        print(f"Topic list long, reduced to {len(chunks)} chunks for {bill.gov_id} (iteration {iterations}).")
         for index, chunk in enumerate(chunks):
             print(f"Summarizing chunk {index} with {len(chunk.split(' '))} words.")
             prompt = f"List the top 10 most important topics the following text:\n{chunk}"
@@ -202,10 +203,9 @@ def reduce_topics(bill: Bill) -> str:
             print(completion)
             response_text = completion.choices[0].message.content
             print(response_text)
-            if response_text.startswith('I apologize') or response_text.startswith("I'm sorry"):
-                chunks[index] = ''
-            else:
+            if not (response_text.startswith('I apologize') or response_text.startswith("I'm sorry")):
                 chunks[index] = response_text
+        iterations += 1
         sections_topics_text = "\n".join(chunks)
         print(f"Reduced topic summary to {len(sections_topics_text.split(' '))} words.")
     return sections_topics_text
