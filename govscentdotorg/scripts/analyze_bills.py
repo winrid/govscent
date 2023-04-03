@@ -90,6 +90,8 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool):
     if len(bill.bill_sections.all()) > 1:
         return 0, False
 
+    return -1, False
+
 
 def set_focus_and_summary(bill: Bill, response: str):
     # if ValueError is thrown, we'll get an exception and openai response stored in the Bill and we can investigate later.
@@ -103,7 +105,11 @@ def set_focus_and_summary(bill: Bill, response: str):
     # cast to int and round incase ranking like 0.5
     topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
     bill.on_topic_ranking = topic_ranking
-    top_10_index = get_top_10_index(bill, response)[0]
+    [top_10_index, _is_single_topic] = get_top_10_index(bill, response)
+
+    if top_10_index == -1:
+        print(f"Warning, no ranking or summary found for {bill.gov_id}.")
+        return
 
     try:
         summary_token = "Summary:"
