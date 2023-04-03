@@ -33,15 +33,17 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
         lines_slice = lines[0:] if is_just_topic_list else lines[0:10]
         for line in lines_slice:
             if len(line) > 2:
-                if line[0].isnumeric() or line.startswith("-"):
+                if line[0].isnumeric() or line.startswith("-") or is_just_topic_list:
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
                     first_period_index = line.find(".")
-                    if first_period_index > -1:
+                    if -1 < first_period_index < 3:
                         line_after_first_number = line[first_period_index + 1:].strip()
                         topics.append(line_after_first_number)
-                    else:
+                    elif line.startswith("-"):
                         line_after_first_char = line[1:].strip()
                         topics.append(line_after_first_char)
+                    elif is_just_topic_list:
+                        topics.append(line)
                 elif not is_just_topic_list:
                     # end of topics
                     break
