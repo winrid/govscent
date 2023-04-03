@@ -9,7 +9,7 @@ model = "gpt-3.5-turbo"
 
 
 def extract_response_topics(bill: Bill, response: str) -> [str]:
-    [top_10_index, is_single_topic] = get_top_10_index(bill, response)
+    [top_10_index, is_single_topic, is_just_topic_list] = get_top_10_index(bill, response)
     lines = response[top_10_index:].splitlines()
     if is_single_topic:
         if len(lines[0]) > 10:
@@ -30,7 +30,8 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
                 return line.strip()
     else:
         topics = []
-        for line in lines[1:10]:
+        lines_slice = lines[0:] if is_just_topic_list else lines[0:10]
+        for line in lines_slice:
             if len(line) > 2:
                 if line[0].isnumeric() or line.startswith("-"):
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
@@ -41,7 +42,7 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
                     else:
                         line_after_first_char = line[1:].strip()
                         topics.append(line_after_first_char)
-                else:
+                elif not is_just_topic_list:
                     # end of topics
                     break
         return topics
@@ -90,7 +91,7 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool):
     if len(bill.bill_sections.all()) > 1:
         return 0, False
 
-    return -1, False
+    return -1, False, True
 
 
 def set_focus_and_summary(bill: Bill, response: str):
