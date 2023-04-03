@@ -272,6 +272,7 @@ def run(arg_reparse_only: str, year: str | None = None):
         .only("id", "gov_id", "text", "bill_sections") if reparse_only else Bill.objects.filter(
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
+    bills = bills.order_by('-date')
     # bills = bills.filter(gov_id="114s2943enr")
 
     if year is not None:
