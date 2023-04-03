@@ -50,7 +50,7 @@ class Bill(models.Model):
     source_file_path = models.TextField(blank=True, null=True)
     text = models.TextField(default="")
     date = models.DateField()
-    last_analyzed_at = models.DateTimeField(default=None, null=True)
+    last_analyzed_at = models.DateTimeField(default=None, blank=True, null=True)
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
     final_analyze_response = models.TextField(default=None, blank=True, null=True)
