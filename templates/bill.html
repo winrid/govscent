@@ -22,7 +22,7 @@
                 <h3>Bill Topics</h3>
                 <ol>
                     {% for topic in bill.topics.all %}
-                        <li>{{ topic.name }}</li>
+                        <li><a href=/topic/{{ topic.id }}>{{ topic.name }}</a></li>
                     {% endfor %}
                 </ol>
             {% endif %}
