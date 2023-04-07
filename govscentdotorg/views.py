@@ -77,7 +77,7 @@ def topic_page(request, bill_topic_id):
 
     topic_to_bill_link = cache.get(bill_topic_id)
     if topic_to_bill_link is None or request.GET.get('no_cache', '') == 'True':
-        bills = Bill.objects.filter(topics__in=[bill_topic]).only('id', 'title')
+        bills = Bill.objects.filter(topics__in=[bill_topic]).order_by('-date').only('id', 'title')
         topic_to_bill_link = {}
         for bill in bills:
             topic_to_bill_link[bill.title] = '/bill/' + bill.gov + '/' + bill.gov_id
