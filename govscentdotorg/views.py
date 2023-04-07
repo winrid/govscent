@@ -8,6 +8,7 @@ from django.http import Http404
 from django.shortcuts import render
 
 from govscentdotorg.models import Bill
+from govscentdotorg.models import BillTopic
 from govscentdotorg.services.bill_html_generator import us_bill_text_to_html
 
 
@@ -64,4 +65,24 @@ def bill_page(request, gov, gov_id):
     return render(request, 'bill.html', {
         'bill': bill,
         'bill_html': bill_html
+    })
+
+
+def topic_page(request, bill_topic_id):
+    bill_topic = BillTopic.objects.filter(id__exact=bill_topic_id).first()
+    if not bill_topic:
+        raise Http404
+    # HTML generation lazily is nice because storage space is much lower and pure text compresses well.
+    # Also, this is much quicker to iterate on when needed.
+
+    topic_to_bill_link = cache.get(bill_topic_id)
+    if topic_to_bill_link is None or request.GET.get('no_cache', '') == 'True':
+        bills = Bill.objects.filter(topics__in=[bill_topic]).only('id', 'title')
+        topic_to_bill_link = {}
+        for bill in bills:
+            topic_to_bill_link[bill.title] = '/bill/' + bill.gov + '/' + bill.gov_id
+        cache.set(bill_topic_id, topic_to_bill_link, 3600)  # Cache for an hour.
+    return render(request, 'topic.html', {
+        'bill_topic': bill_topic,
+        'topic_to_bill_link': topic_to_bill_link
     })

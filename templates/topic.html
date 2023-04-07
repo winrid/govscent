@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ bill_topic }} | govscent.org{% endblock %}
+
+{% block content %}
+    <div class="bill-lists">
+        <div class="topic">
+            <h3>Bills with Topic : {{bill_topic}}</h3>
+        </div>
+        <div class="bill-links">
+            <ol>
+                {% for topic, link in  topic_to_bill_link.items %}
+                    <li><a href={{ link }}>{{ topic }}</a></li>
+                {% endfor %}
+            </ol>
+        </div>
+    </div>
+{% endblock %}
