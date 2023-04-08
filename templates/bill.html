@@ -20,7 +20,7 @@
             {% endif %}
         </div>
         <div class="topics">
-            {% if bill.topics %}
+            {% if bill.topics and bill.topics.all.first is not None %}
                 <h3>Bill Topics</h3>
                 <ol>
                     {% for topic in bill.topics.all %}
