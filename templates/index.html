@@ -45,22 +45,32 @@
         </div>
     {% endif %}
     <div class="bills">
-        <h2>Recent Bills</h2>
+        <h2>Recent Analyzed Bills</h2>
         {% if recent_bills %}
             {% for bill in recent_bills %}
                 <div class="bill">
+                    <div class="heading">
+                        <span class="date">{{ bill.date }}</span>
+                        {% if bill.on_topic_ranking is not None %}
+                            <span class="on-topic-ranking">- On Topic Ranking: {{ bill.on_topic_ranking }}/10</span>
+                        {% endif %}
+                        <div class="id">
+                            <i>{{ bill.gov_id }}</i>
+                        </div>
+                    </div>
                     <a class="title" href="{% url 'bill_page' bill.gov bill.gov_id %}">{{ bill.title }}</a>
-                    <div class="date">{{ bill.date }}</div>
-                    <div class="on-topic-ranking">{{ bill.on_topic_ranking }}</div>
+                    {% if bill.text_summary %}
+                        <div class="summary">
+                            <span>Summary:</span>
+                            {{ bill.text_summary }}
+                        </div>
+                    {% endif %}
                     <div class="analyzed-status">
                         {% if bill.last_analyzed_at %}
-                            Analyzed at {{ bill.last_analyzed_at }}
+                            (Analyzed at {{ bill.last_analyzed_at }})
                         {% else %}
-                            Pending Analysis
+                            (Pending Analysis)
                         {% endif %}
-                    </div>
-                    <div class="summary">
-                        {{ bill.text_summary }}
                     </div>
                 </div>
             {% endfor %}
