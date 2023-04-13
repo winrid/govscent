@@ -94,7 +94,7 @@ class BillTopicAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(
-            _bill_count=Count("topics", distinct=True),
+            _bill_count=Count("related_bills", distinct=True),
         )
         return queryset
 
