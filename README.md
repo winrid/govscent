@@ -22,6 +22,11 @@ ENV="dev"
 SECRET_KEY="LOCAL_DEV"
 OPENAI_API_ORG="org-abc"
 OPENAI_API_KEY="sk-xyz"
+DB_NAME="govscent"
+DB_USER="postgres"
+DB_PASSWORD="password"
+DB_HOST="localhost"
+DB_PORT="5432"
 ```
 
 The OpenAPI keys are only required if you plan to run analysis from your machine.
