@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'govscentdotorg.apps.GovscentdotorgConfig',
     'django_extensions',
     'admin_numeric_filter',
+    'import_export',
 ]
 
 MIDDLEWARE = [
