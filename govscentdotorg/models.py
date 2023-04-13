@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from import_export.admin import ImportExportModelAdmin
+from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 
 
 class BillTopic(models.Model):
@@ -88,7 +88,7 @@ class Bill(models.Model):
         return self.title
 
 
-class BillTopicAdmin(ImportExportModelAdmin):
+class BillTopicAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('name', 'bill_count')
     readonly_fields = ('bill_links',)
 
@@ -116,7 +116,7 @@ class BillTopicAdmin(ImportExportModelAdmin):
     bill_links.short_description = 'Bills'
 
 
-class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin):
+class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'on_topic_ranking', 'date')
     list_filter = ('is_latest_revision', ('on_topic_ranking', RangeNumericFilter))
@@ -134,5 +134,5 @@ class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin):
     section_links.short_description = 'Sections'
 
 
-class BillSectionAdmin(ImportExportModelAdmin):
+class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('id', 'last_analyze_error')
