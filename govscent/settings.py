@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'admin_numeric_filter',
     'import_export',
+    'django_dumpdata_one',
 ]
 
 MIDDLEWARE = [
