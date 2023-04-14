@@ -66,6 +66,8 @@ class BillViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all().order_by('id')
     serializer_class = BillSerializer
     pagination_class = SmallViewSetPagination
+    # Only allow ordering where we have indexes.
+    ordering_fields = ['id', 'gov_id', 'on_topic_ranking', 'date', 'last_analyzed_at']
 
 
 class RouterRootView(routers.APIRootView):

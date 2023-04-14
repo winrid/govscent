@@ -7,15 +7,9 @@ Govscent is a Django application.
 - Python 3.10+
 - PostgresSQL
 
-### Setup
+### Setup and Import Prod Data
 
-Django will automatically use an sqlite db in the project directory, so no DB or external service setup is required.
-
-Once you get Django running, you'll want to create an admin user locally. Django has docs for this.
-
-Then the admin panel is accessible via `http://localhost:8000/admin`.
-
-You'll have to setup a `.env` file like the following:
+Create a `.env` file like the following:
 
 ```
 ENV="dev"
@@ -31,9 +25,22 @@ DB_PORT="5432"
 
 The OpenAPI keys are only required if you plan to run analysis from your machine.
 
+1. Install Postgres 14+ and create a "govscent" database.
+2. Setup venv to isolate dependencies: `python3 -m venv venv`
+3. Use the venv (for Posix users): `source env/bin/activate`
+4. Install dependencies: `pip install -r requirements.txt`
+5. Setup database: `./manage.py migrate`
+6. Create your admin user! `./manage.py createsuperuser`
+7. Import the last 1000 bills and related data from production `./manage.py runscript sync_from_prod --script-args 1000`
+8. Start the app! `./manage.py runserver`
+
+Then the admin panel is accessible via `http://localhost:8000/admin`.
+The API is accessible via `http://localhost:8000/api`.
+
 #### Development DB
 
-TODO - We will have an sqlite file you can download to get started with development quickly.
+You can pull the latest data from prod with the `sync_from_prod` script. This makes development a lot easier since you're
+always working with prod data.
 
 #### Data Flow
 
