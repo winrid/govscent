@@ -45,10 +45,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
-    'govscentdotorg.apps.GovscentdotorgConfig',
     'django_extensions',
     'admin_numeric_filter',
     'import_export',
+    'rest_framework',
+    'govscentdotorg.apps.GovscentdotorgConfig',
 ]
 
 MIDDLEWARE = [
@@ -157,3 +158,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # For admin stuff, for now.
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100
+}
