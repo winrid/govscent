@@ -81,7 +81,7 @@ class Router(routers.DefaultRouter):
 
 
 api_router = Router()
+api_router.register(r'bills/v1', BillViewSet)
 api_router.register(r'bill_sections/v1', BillSectionViewSet)
 api_router.register(r'bill_smells/v1', BillSmellViewSet)
 api_router.register(r'bill_topics/v1', BillTopicViewSet)
-api_router.register(r'bills/v1', BillViewSet)
