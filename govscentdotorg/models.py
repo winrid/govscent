@@ -54,8 +54,8 @@ class Bill(models.Model):
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
     final_analyze_response = models.TextField(default=None, blank=True, null=True)
-    last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
-    bill_sections = models.ManyToManyField(BillSection, related_name="sections")
+    last_analyze_model = models.CharField(max_length=100, default="gpt-3.5-turbo", null=True)
+    bill_sections = models.ManyToManyField(BillSection, related_name="sections", blank=True)
 
     topics = models.ManyToManyField(BillTopic, related_name="related_bills", blank=True)
     text_summary = models.TextField(default=None, blank=True, null=True)
