@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
     {% load static %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&family=Space+Grotesk:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&family=Space+Grotesk:wght@500&display=swap"
+          rel="stylesheet">
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <link rel="shortcut icon" type="image/png" href="{% static 'logo_0.png' %}"/>
     <title>{% block title %}govscent.org{% endblock %}</title>
@@ -24,6 +25,18 @@
 
 <div class="content">
     {% block content %}{% endblock %}
+</div>
+
+<div class="footer">
+    <div class="footer-content">
+        <div class="links">
+            <a href="/api">API</a>
+            <a href="https://github.com/winrid/govscent">Source Code</a>
+        </div>
+        <div class="sponsored-by">
+            Govscent is kept free by <a href="https://fastcomments.com" target="_blank">FastComments.com</a>
+        </div>
+    </div>
 </div>
 </body>
 </html>

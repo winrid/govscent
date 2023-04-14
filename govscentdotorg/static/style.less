@@ -1,3 +1,6 @@
+@color-grey-text-back: #f5f3f3;
+@width: 1500px;
+
 html, body {
   margin: 0;
   padding: 0;
@@ -10,7 +13,7 @@ html, body {
 
 .nav {
   .nav-content {
-    max-width: 1500px;
+    max-width: @width;
     margin: 0 auto;
     padding: 10px 20px 20px 20px;
 
@@ -46,7 +49,7 @@ html, body {
 .content {
   margin: 0 auto;
   padding: 20px;
-  max-width: 1500px;
+  max-width: @width;
 
   .stats {
     .stats-heading {
@@ -87,6 +90,51 @@ html, body {
 
       &.num, &.quoted {
         padding-left: 50px;
+      }
+    }
+  }
+}
+
+.footer {
+  background: @color-grey-text-back;
+
+  .footer-content {
+    display: flex;
+    max-width: @width;
+    margin: 0 auto;
+    height: 50px;
+    align-items: center;
+
+    & > * {
+      width: 50%;
+    }
+
+    .links {
+      a {
+        margin-right: 5px;
+      }
+    }
+
+    .sponsored-by {
+      text-align: right;
+    }
+
+    @media (max-width: @width) {
+      padding: 0 10px;
+    }
+
+    @media (max-width: 768px) {
+      padding: 10px;
+      align-items: flex-start;
+      flex-direction: column;
+      justify-content: space-between;
+
+      & > * {
+        width: 100%;
+      }
+
+      .sponsored-by {
+        text-align: inherit;
       }
     }
   }

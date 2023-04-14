@@ -69,4 +69,42 @@ body {
 .content .bill-content .bullet.quoted {
   padding-left: 50px;
 }
+.footer {
+  background: #f5f3f3;
+}
+.footer .footer-content {
+  display: flex;
+  max-width: 1500px;
+  margin: 0 auto;
+  height: 50px;
+  align-items: center;
+}
+.footer .footer-content > * {
+  width: 50%;
+}
+.footer .footer-content .links a {
+  margin-right: 5px;
+}
+.footer .footer-content .sponsored-by {
+  text-align: right;
+}
+@media (max-width: 1500px) {
+  .footer .footer-content {
+    padding: 0 10px;
+  }
+}
+@media (max-width: 768px) {
+  .footer .footer-content {
+    padding: 10px;
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .footer .footer-content > * {
+    width: 100%;
+  }
+  .footer .footer-content .sponsored-by {
+    text-align: inherit;
+  }
+}
 /*# sourceMappingURL=style.css.map */
