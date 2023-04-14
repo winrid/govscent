@@ -1,7 +1,47 @@
 from rest_framework import routers, serializers, viewsets
 from rest_framework.pagination import PageNumberPagination
 
-from govscentdotorg.models import Bill, BillTopic
+from govscentdotorg.models import Bill, BillTopic, BillSection, BillSmell
+
+
+class BillSectionSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
+    class Meta:
+        model = BillSection
+        fields = '__all__'
+
+
+class BillSectionViewSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+
+
+class BillSectionViewSet(viewsets.ModelViewSet):
+    queryset = Bill.objects.all().order_by('id')
+    serializer_class = BillSectionSerializer
+    pagination_class = BillSectionViewSetPagination
+
+
+class BillSmellSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+
+    class Meta:
+        model = BillSmell
+        fields = '__all__'
+
+
+class BillSmellViewSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+
+
+class BillSmellViewSet(viewsets.ModelViewSet):
+    queryset = Bill.objects.all().order_by('id')
+    serializer_class = BillSmellSerializer
+    pagination_class = BillSmellViewSetPagination
 
 
 class BillSerializer(serializers.HyperlinkedModelSerializer):
@@ -50,3 +90,5 @@ class Router(routers.DefaultRouter):
 api_router = Router()
 api_router.register(r'bills/v1', BillViewSet)
 api_router.register(r'bill_topics/v1', BillTopicViewSet)
+api_router.register(r'bill_sections/v1', BillSectionViewSet)
+api_router.register(r'bill_smells/v1', BillSmellViewSet)
