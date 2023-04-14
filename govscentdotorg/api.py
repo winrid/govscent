@@ -19,7 +19,7 @@ class BillSectionSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BillSectionViewSet(viewsets.ModelViewSet):
-    queryset = Bill.objects.all().order_by('id')
+    queryset = BillSection.objects.all().order_by('id')
     serializer_class = BillSectionSerializer
     pagination_class = SmallViewSetPagination
 
@@ -33,7 +33,7 @@ class BillSmellSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class BillSmellViewSet(viewsets.ModelViewSet):
-    queryset = Bill.objects.all().order_by('id')
+    queryset = BillSmell.objects.all().order_by('id')
     serializer_class = BillSmellSerializer
     pagination_class = SmallViewSetPagination
 
