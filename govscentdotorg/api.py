@@ -38,20 +38,6 @@ class BillSmellViewSet(viewsets.ModelViewSet):
     pagination_class = SmallViewSetPagination
 
 
-class BillSerializer(serializers.HyperlinkedModelSerializer):
-    id = serializers.ReadOnlyField()
-
-    class Meta:
-        model = Bill
-        fields = '__all__'
-
-
-class BillViewSet(viewsets.ModelViewSet):
-    queryset = Bill.objects.all().order_by('id')
-    serializer_class = BillSerializer
-    pagination_class = SmallViewSetPagination
-
-
 class BillTopicSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
@@ -65,6 +51,23 @@ class BillTopicViewSet(viewsets.ModelViewSet):
     serializer_class = BillTopicSerializer
 
 
+class BillSerializer(serializers.HyperlinkedModelSerializer):
+    id = serializers.ReadOnlyField()
+    bill_sections = BillSectionSerializer(many=True)
+    smells = BillSmellSerializer(many=True)
+    topics = BillTopicSerializer(many=True)
+
+    class Meta:
+        model = Bill
+        fields = '__all__'
+
+
+class BillViewSet(viewsets.ModelViewSet):
+    queryset = Bill.objects.all().order_by('id')
+    serializer_class = BillSerializer
+    pagination_class = SmallViewSetPagination
+
+
 class RouterRootView(routers.APIRootView):
     """
     Welcome to the Govscent API! The below resources are read-only for public users, and paginated based on id.
@@ -76,7 +79,7 @@ class Router(routers.DefaultRouter):
 
 
 api_router = Router()
-api_router.register(r'bills/v1', BillViewSet)
-api_router.register(r'bill_topics/v1', BillTopicViewSet)
 api_router.register(r'bill_sections/v1', BillSectionViewSet)
 api_router.register(r'bill_smells/v1', BillSmellViewSet)
+api_router.register(r'bill_topics/v1', BillTopicViewSet)
+api_router.register(r'bills/v1', BillViewSet)
