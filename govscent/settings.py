@@ -193,5 +193,5 @@ LOGGING = {
 }
 
 # This appends an MD5 hash to static files for cache busting.
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
 
