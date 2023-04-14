@@ -4,6 +4,12 @@ from rest_framework.pagination import PageNumberPagination
 from govscentdotorg.models import Bill, BillTopic, BillSection, BillSmell
 
 
+class SmallViewSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 10
+
+
 class BillSectionSerializer(serializers.HyperlinkedModelSerializer):
     id = serializers.ReadOnlyField()
 
@@ -12,16 +18,10 @@ class BillSectionSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class BillSectionViewSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10
-
-
 class BillSectionViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all().order_by('id')
     serializer_class = BillSectionSerializer
-    pagination_class = BillSectionViewSetPagination
+    pagination_class = SmallViewSetPagination
 
 
 class BillSmellSerializer(serializers.HyperlinkedModelSerializer):
@@ -32,16 +32,10 @@ class BillSmellSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class BillSmellViewSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10
-
-
 class BillSmellViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all().order_by('id')
     serializer_class = BillSmellSerializer
-    pagination_class = BillSmellViewSetPagination
+    pagination_class = SmallViewSetPagination
 
 
 class BillSerializer(serializers.HyperlinkedModelSerializer):
@@ -52,16 +46,10 @@ class BillSerializer(serializers.HyperlinkedModelSerializer):
         fields = '__all__'
 
 
-class BillViewSetPagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'page_size'
-    max_page_size = 10
-
-
 class BillViewSet(viewsets.ModelViewSet):
     queryset = Bill.objects.all().order_by('id')
     serializer_class = BillSerializer
-    pagination_class = BillViewSetPagination
+    pagination_class = SmallViewSetPagination
 
 
 class BillTopicSerializer(serializers.HyperlinkedModelSerializer):
