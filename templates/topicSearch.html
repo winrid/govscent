@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Search Topic | govscent.org{% endblock %}
+
+{% block content %}
+    <div class="topic-search-box">
+        <form id="form" role="search" method=POST action="{% url 'topic_search_page' %}">
+            {% csrf_token %}
+            <input type="search" id="query" name="searched" placeholder="Search..." aria-label="Search through site content">
+            <button class="text-search-button" type="submit">Search</button>
+        </form>
+        {% if searched %}
+            <div class="search-result">
+                <h3>Searched for {{ searched }}</h3>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

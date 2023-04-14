@@ -23,4 +23,5 @@ urlpatterns = [
     path('bill/<str:gov>/<str:gov_id>', views.bill_page, name='bill_page'),
     path('admin/', admin.site.urls),
     path('topic/<str:bill_topic_id>', views.topic_page, name='topic_page'),
+    path('search/topic', views.topic_search_page, name="topic_search_page"),
 ]

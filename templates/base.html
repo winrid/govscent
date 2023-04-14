@@ -18,6 +18,14 @@
             <div class="ai-warning">Disclaimer: Govscent is an automated AI experiment.</div>
             <div class="logo"><img src="{% static 'logo_0.png' %}" alt="Govscent.org Logo"/></div>
             <div class="title">Govscent.org</div>
+            <div class="topic-search">
+                <button id="topicSearchButton" class="topic-search-button">Search Topic</button>
+                <script type="text/javascript">
+                    document.getElementById("topicSearchButton").onclick = function () {
+                        window.open('/search/topic', '_blank');
+                    };
+                </script>
+            </div>
         {% endblock %}
     </div>
 </div>

@@ -32,6 +32,24 @@ body {
   letter-spacing: 1px;
   font-family: 'Space Grotesk', sans-serif;
 }
+
+.nav .nav-content .topic-search {
+  float: right;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav .nav-content .topic-search .topic-search-button {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+  border-radius: 12px;
+  color: black;
+  margin-right: 10px;
+  font-size: 24px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
 .content {
   margin: 0 auto;
   padding: 20px;
