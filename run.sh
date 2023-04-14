@@ -9,5 +9,6 @@ python3.10 manage.py migrate
 python3.10 manage.py collectstatic --skip-checks --no-input
 /home/winrid/govscent/env/bin/gunicorn \
           --access-logfile - \
+          --error-logfile - \
           --workers 4 \
           govscent.wsgi:application
