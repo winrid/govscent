@@ -37,6 +37,16 @@ class BillTopicViewSet(viewsets.ModelViewSet):
     serializer_class = BillTopicSerializer
 
 
-api_router = routers.DefaultRouter()
+class RouterRootView(routers.APIRootView):
+    """
+    Welcome to the Govscent API! The below resources are read-only for public users, and paginated based on id.
+    """
+
+
+class Router(routers.DefaultRouter):
+    APIRootView = RouterRootView
+
+
+api_router = Router()
 api_router.register(r'bills/v1', BillViewSet)
 api_router.register(r'bill_topics/v1', BillTopicViewSet)
