@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'admin_numeric_filter',
     'import_export',
     'rest_framework',
+    'django_filters',
     'govscentdotorg.apps.GovscentdotorgConfig',
 ]
 
@@ -166,7 +167,9 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 100
+    'PAGE_SIZE': 100,
+    # Allows complex filtering.
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
 LOGGING = {
@@ -177,6 +180,12 @@ LOGGING = {
             'class': 'logging.StreamHandler',
         },
     },
+    # Uncomment to log all queries.
+    # 'loggers': {
+    #     'django.db.backends': {
+    #         'level': 'DEBUG',
+    #     },
+    # },
     'root': {
         'handlers': ['console'],
         'level': 'WARNING',
