@@ -3,7 +3,7 @@ import json
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
-from django.db.models import Avg
+from django.db.models import Avg, Count
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import render
@@ -92,9 +92,13 @@ def topic_search_page(request):
         search_input = request.POST.get("searched")
         search_vector = SearchVector('search_vector', config='english')
         search_query = SearchQuery(search_input)
-        topics = BillTopic.objects.annotate(rank=SearchRank(search_vector, search_query))\
+        # TODO custom sort direction (rank, # of bills, etc)
+        topics = BillTopic.objects.annotate(
+                rank=SearchRank(search_vector, search_query),
+                bill_count=Count('related_bills')
+        )\
             .filter(search_vector=search_query, rank__gte=0.01)\
-            .order_by('-rank')
+            .order_by('-bill_count')
         return render(request, 'topicSearch.html', {
             'searched': search_input,
             'topics': topics,
