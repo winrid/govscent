@@ -76,16 +76,14 @@ def topic_page(request, bill_topic_id):
     # HTML generation lazily is nice because storage space is much lower and pure text compresses well.
     # Also, this is much quicker to iterate on when needed.
 
-    topic_to_bill_link = cache.get(bill_topic_id)
-    if topic_to_bill_link is None or request.GET.get('no_cache', '') == 'True':
-        bills = Bill.objects.filter(topics__in=[bill_topic]).order_by('-date').only('id', 'title')
-        topic_to_bill_link = {}
-        for bill in bills:
-            topic_to_bill_link[bill.title] = '/bill/' + bill.gov + '/' + bill.gov_id
-        cache.set(bill_topic_id, topic_to_bill_link, 3600)  # Cache for an hour.
+    cache_key = f'bills-by-topic:{bill_topic_id}'
+    bills = cache.get(cache_key)
+    if bills is None or request.GET.get('no_cache', '') == 'True':
+        bills = Bill.objects.filter(topics__in=[bill_topic]).order_by('-date').only('id', 'title', 'gov', 'gov_id')
+        cache.set(cache_key, bills, 3600)  # Cache for an hour.
     return render(request, 'topic.html', {
         'bill_topic': bill_topic,
-        'topic_to_bill_link': topic_to_bill_link
+        'bills': bills
     })
 
 

@@ -8,8 +8,8 @@
         </div>
         <div class="bill-links">
             <ol>
-                {% for topic, link in  topic_to_bill_link.items %}
-                    <li><a href={{ link }}>{{ topic }}</a></li>
+                {% for bill in bills %}
+                    <li><a href="{% url 'bill_page' bill.gov bill.gov_id %}">({{ bill.gov_id }}) {{ bill.title }}</a></li>
                 {% endfor %}
             </ol>
         </div>
