@@ -2,9 +2,16 @@
 @width: 1500px;
 
 html, body {
+  height: 100%; // for footer
   margin: 0;
   padding: 0;
   font-family: 'Hanken Grotesk', sans-serif;
+}
+
+// for footer
+body {
+  display: flex;
+  flex-direction: column;
 }
 
 .font-space {
@@ -47,9 +54,12 @@ html, body {
 }
 
 .content {
+  flex: 1 0 auto;
   margin: 0 auto;
+  width: 100%;
   padding: 20px;
   max-width: @width;
+  box-sizing: border-box;
 
   .stats {
     .stats-heading {
@@ -96,6 +106,7 @@ html, body {
 }
 
 .footer {
+  flex-shrink: 0;
   background: @color-grey-text-back;
 
   .footer-content {
