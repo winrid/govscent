@@ -2,6 +2,7 @@ import json
 
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
+from django.core.paginator import Paginator
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg, Count
 from django.db.models.functions import TruncMonth
@@ -87,22 +88,41 @@ def topic_page(request, bill_topic_id: str, slug):
     })
 
 
-def topic_search_page(request):
+def get_topic_search_query(request):
     if request.method == 'POST':
+        return request.POST.get("searched")
+    return None
+
+
+def get_topics_query_set(request, search_input: str | None):
+    if search_input is not None:
         search_input = request.POST.get("searched")
         search_vector = SearchVector('search_vector', config='english')
         search_query = SearchQuery(search_input)
         # TODO custom sort direction (rank, # of bills, etc)
-        topics = BillTopic.objects.annotate(
+        return BillTopic.objects.annotate(
                 rank=SearchRank(search_vector, search_query),
                 bill_count=Count('related_bills')
         )\
             .filter(search_vector=search_query, rank__gte=0.01)\
             .order_by('-bill_count')
-        return render(request, 'topicSearch.html', {
-            'searched': search_input,
-            'topics': topics,
-        })
+    else:
+        return BillTopic.objects.annotate(
+            bill_count=Count('related_bills')
+        ).order_by('-bill_count')
+
+
+def topic_search_page(request):
+    search_input = get_topic_search_query(request)
+    page_number = request.POST.get('page')
+    if page_number is None:
+        page_number = request.GET.get('page')
+
+    paginator = Paginator(get_topics_query_set(request, search_input), 100)
+    paginated_data = paginator.get_page(page_number)
 
     return render(request, 'topicSearch.html', {
+        'searched': search_input,
+        'paginated_data': paginated_data
     })
+

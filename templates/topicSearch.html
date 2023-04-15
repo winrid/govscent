@@ -5,20 +5,41 @@
     <div class="topic-search-box">
         <form id="form" role="search" method=POST action="{% url 'topic_search_page' %}">
             {% csrf_token %}
-            <input type="search" id="query" name="searched" placeholder="Search..." aria-label="Search through site content" value="{{ searched }}"/>
+            <input type="search" id="query" name="searched" placeholder="Search..."
+                   aria-label="Search through site content" value="{{ searched | default_if_none:'' }}"/>
             <button class="text-search-button" type="submit">Search</button>
         </form>
-        {% if searched %}
-            <div class="search-result">
-                <h3>Topic{{topics.count|pluralize:",s"}} for: {{ searched }}</h3>
-                <ol>
-                {% for topic in topics %}
+        <div class="search-result">
+            {% if searched %}
+                <h3>Topic{{ topics.count|pluralize:",s" }} for: {{ searched }}</h3>
+            {% else %}
+                <h3>All Topics</h3>
+            {% endif %}
+            <ul>
+                {% for topic in paginated_data %}
                     <li>
-                        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a> ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
+                        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a>
+                        ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
                     </li>
                 {% endfor %}
-            </ol>
-            </div>
-        {% endif %}
+            </ul>
+        </div>
+        <div class="pagination">
+            <span class="step-links">
+                {% if paginated_data.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ paginated_data.previous_page_number }}">previous</a>
+                {% endif %}
+
+                <span class="current">
+                    Page {{ paginated_data.number }} of {{ paginated_data.paginator.num_pages }}.
+                </span>
+
+                {% if paginated_data.has_next %}
+                    <a href="?page={{ paginated_data.next_page_number }}">next</a>
+                    <a href="?page={{ paginated_data.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
     </div>
 {% endblock %}
