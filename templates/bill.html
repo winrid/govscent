@@ -25,7 +25,7 @@
                 <ol>
                     {% for topic in bill.topics.all %}
                         <li>
-                            <a href=/topic/{{ topic.id }}>{{ topic.name }}</a>
+                            <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a>
                             {% if topic.related_bills.count > 1 %}
                                 ({{ topic.related_bills.count | add:'-1' }} other bills)
                             {% endif %}

@@ -69,7 +69,7 @@ def bill_page(request, gov, gov_id):
     })
 
 
-def topic_page(request, bill_topic_id):
+def topic_page(request, bill_topic_id: str, slug):
     bill_topic = BillTopic.objects.filter(id__exact=bill_topic_id).first()
     if not bill_topic:
         raise Http404

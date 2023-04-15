@@ -14,7 +14,7 @@
                 <ol>
                 {% for topic in topics %}
                     <li>
-                        <a href=/topic/{{ topic.id }}>{{ topic.name }}</a> ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
+                        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a> ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
                     </li>
                 {% endfor %}
             </ol>

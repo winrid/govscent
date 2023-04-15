@@ -24,6 +24,8 @@ urlpatterns = [
     path('bill/<str:gov>/<str:gov_id>', views.bill_page, name='bill_page'),
     path('admin/', admin.site.urls),
     path('topic/<str:bill_topic_id>', views.topic_page, name='topic_page'),
+    # This extra URL definition for the topic page is so we can optionally include some context in the URL.
+    path('topic/<str:bill_topic_id>/<path:slug>', views.topic_page, name='topic_page_with_slug'),
     path('search/topic', views.topic_search_page, name="topic_search_page"),
     path('api/', include(api_router.urls)),
     path('api-auth/', include('rest_framework.urls'))
