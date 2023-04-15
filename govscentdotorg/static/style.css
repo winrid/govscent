@@ -48,15 +48,6 @@ body {
   justify-content: space-between;
 }
 
-.nav .nav-content .topic-search .topic-search-button {
-  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-  border-radius: 12px;
-  color: black;
-  margin-right: 10px;
-  font-size: 24px;
-  font-family: 'Space Grotesk', sans-serif;
-}
-
 .content {
   flex: 1 0 auto;
   margin: 0 auto;

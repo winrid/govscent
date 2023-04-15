@@ -7,11 +7,17 @@ from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
+from django.contrib.postgres.indexes import GinIndex
 
 
 class BillTopic(models.Model):
     name = models.TextField(unique=True)
     created_at = models.DateTimeField(default=datetime.datetime.now)
+
+    class Meta:
+        indexes = [
+            GinIndex(fields=['name']),
+        ]
 
     def __str__(self):
         return self.name
@@ -130,6 +136,7 @@ class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionMod
             html += f'<li><a href="{reverse("admin:govscentdotorg_billsection_change", args=(section.pk,))}">{section.id}</a></li>'
         html += '</ol>'
         return mark_safe(html)
+
     section_links.short_description = 'Sections'
 
 
