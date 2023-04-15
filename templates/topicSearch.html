@@ -27,8 +27,8 @@
         <div class="pagination">
             <span class="step-links">
                 {% if paginated_data.has_previous %}
-                    <a href="?page=1">&laquo; first</a>
-                    <a href="?page={{ paginated_data.previous_page_number }}">previous</a>
+                    <a href="?page=1&searched={{ searched }}">&laquo; first</a>
+                    <a href="?page={{ paginated_data.previous_page_number }}&searched={{ searched }}">previous</a>
                 {% endif %}
 
                 <span class="current">
@@ -36,8 +36,8 @@
                 </span>
 
                 {% if paginated_data.has_next %}
-                    <a href="?page={{ paginated_data.next_page_number }}">next</a>
-                    <a href="?page={{ paginated_data.paginator.num_pages }}">last &raquo;</a>
+                    <a href="?page={{ paginated_data.next_page_number }}&searched={{ searched }}">next</a>
+                    <a href="?page={{ paginated_data.paginator.num_pages }}&searched={{ searched }}">last &raquo;</a>
                 {% endif %}
             </span>
         </div>

@@ -92,12 +92,11 @@ def topic_page(request, bill_topic_id: str, slug):
 def get_topic_search_query(request):
     if request.method == 'POST':
         return request.POST.get("searched")
-    return None
+    return request.GET.get("searched")
 
 
 def get_topics_query_set(request, search_input: str | None):
-    if search_input is not None:
-        search_input = request.POST.get("searched")
+    if search_input:
         search_vector = SearchVector('search_vector', config='english')
         search_query = SearchQuery(search_input)
         # TODO custom sort direction (rank, # of bills, etc)
