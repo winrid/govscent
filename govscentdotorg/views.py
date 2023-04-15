@@ -8,6 +8,7 @@ from django.db.models import Avg, Count
 from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import render
+from django.views.decorators.cache import cache_page
 
 from govscentdotorg.models import Bill
 from govscentdotorg.models import BillTopic
@@ -112,6 +113,7 @@ def get_topics_query_set(request, search_input: str | None):
         ).order_by('-bill_count')
 
 
+@cache_page(5 * 15)  # Cache for 5 minutes.
 def topic_search_page(request):
     search_input = get_topic_search_query(request)
     page_number = request.POST.get('page')
