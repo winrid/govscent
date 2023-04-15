@@ -5,12 +5,19 @@
     <div class="topic-search-box">
         <form id="form" role="search" method=POST action="{% url 'topic_search_page' %}">
             {% csrf_token %}
-            <input type="search" id="query" name="searched" placeholder="Search..." aria-label="Search through site content">
+            <input type="search" id="query" name="searched" placeholder="Search..." aria-label="Search through site content" value="{{ searched }}"/>
             <button class="text-search-button" type="submit">Search</button>
         </form>
         {% if searched %}
             <div class="search-result">
-                <h3>Searched for {{ searched }}</h3>
+                <h3>Topic{{topics.count|pluralize:",s"}} for: {{ searched }}</h3>
+                <ol>
+                {% for topic in topics %}
+                    <li>
+                        <a href=/topic/{{ topic.id }}>{{ topic.name }}</a> ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
+                    </li>
+                {% endfor %}
+            </ol>
             </div>
         {% endif %}
     </div>

@@ -1,12 +1,12 @@
 import datetime
 
 from admin_numeric_filter.admin import NumericFilterModelAdmin, RangeNumericFilter
-from django.contrib import admin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models import Count
 from django.urls import reverse
 from django.utils.safestring import mark_safe
+from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 
 
 class BillTopic(models.Model):
@@ -54,10 +54,10 @@ class Bill(models.Model):
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
     final_analyze_response = models.TextField(default=None, blank=True, null=True)
-    last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
-    bill_sections = models.ManyToManyField(BillSection, related_name="sections")
+    last_analyze_model = models.CharField(max_length=100, default="gpt-3.5-turbo", null=True)
+    bill_sections = models.ManyToManyField(BillSection, related_name="sections", blank=True)
 
-    topics = models.ManyToManyField(BillTopic, related_name="topics", blank=True)
+    topics = models.ManyToManyField(BillTopic, related_name="related_bills", blank=True)
     text_summary = models.TextField(default=None, blank=True, null=True)
     smells = models.ManyToManyField(BillSmell, blank=True)
     on_topic_ranking = models.PositiveSmallIntegerField(default=None, blank=True, null=True, validators=[
@@ -87,14 +87,14 @@ class Bill(models.Model):
         return self.title
 
 
-class BillTopicAdmin(admin.ModelAdmin):
+class BillTopicAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('name', 'bill_count')
     readonly_fields = ('bill_links',)
 
     def get_queryset(self, request):
         queryset = super().get_queryset(request)
         queryset = queryset.annotate(
-            _bill_count=Count("topics", distinct=True),
+            _bill_count=Count("related_bills", distinct=True),
         )
         return queryset
 
@@ -115,7 +115,7 @@ class BillTopicAdmin(admin.ModelAdmin):
     bill_links.short_description = 'Bills'
 
 
-class BillAdmin(NumericFilterModelAdmin):
+class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'on_topic_ranking', 'date')
     list_filter = ('is_latest_revision', ('on_topic_ranking', RangeNumericFilter))
@@ -133,5 +133,5 @@ class BillAdmin(NumericFilterModelAdmin):
     section_links.short_description = 'Sections'
 
 
-class BillSectionAdmin(admin.ModelAdmin):
+class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('id', 'last_analyze_error')

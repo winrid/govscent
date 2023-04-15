@@ -20,11 +20,16 @@
             {% endif %}
         </div>
         <div class="topics">
-            {% if bill.topics %}
+            {% if bill.topics and bill.topics.all.first is not None %}
                 <h3>Bill Topics</h3>
                 <ol>
                     {% for topic in bill.topics.all %}
-                        <li><a href=/topic/{{ topic.id }}>{{ topic.name }}</a></li>
+                        <li>
+                            <a href=/topic/{{ topic.id }}>{{ topic.name }}</a>
+                            {% if topic.related_bills.count > 1 %}
+                                ({{ topic.related_bills.count | add:'-1' }} other bills)
+                            {% endif %}
+                        </li>
                     {% endfor %}
                 </ol>
             {% endif %}

@@ -46,9 +46,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'django.contrib.postgres',
-    'govscentdotorg.apps.GovscentdotorgConfig',
     'django_extensions',
     'admin_numeric_filter',
+    'import_export',
+    'rest_framework',
+    'django_filters',
+    'govscentdotorg.apps.GovscentdotorgConfig',
 ]
 
 MIDDLEWARE = [
@@ -95,9 +98,6 @@ WSGI_APPLICATION = 'govscent.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    } if DEBUG else {
        'ENGINE': 'django.db.backends.postgresql_psycopg2',
        'NAME': os.environ['DB_NAME'],
        'USER': os.environ['DB_USER'],
@@ -160,3 +160,39 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # For admin stuff, for now.
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10240
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 100,
+    # Allows complex filtering.
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    # Uncomment to log all queries.
+    # 'loggers': {
+    #     'django.db.backends': {
+    #         'level': 'DEBUG',
+    #     },
+    # },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+}
+
+# This appends an MD5 hash to static files for cache busting.
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+

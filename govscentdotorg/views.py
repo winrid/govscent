@@ -78,7 +78,7 @@ def topic_page(request, bill_topic_id):
 
     topic_to_bill_link = cache.get(bill_topic_id)
     if topic_to_bill_link is None or request.GET.get('no_cache', '') == 'True':
-        bills = Bill.objects.filter(topics__in=[bill_topic]).only('id', 'title')
+        bills = Bill.objects.filter(topics__in=[bill_topic]).order_by('-date').only('id', 'title')
         topic_to_bill_link = {}
         for bill in bills:
             topic_to_bill_link[bill.title] = '/bill/' + bill.gov + '/' + bill.gov_id
@@ -94,12 +94,12 @@ def topic_search_page(request):
         search_input = request.POST.get("searched")
         vector = SearchVector("name")
         query = SearchQuery(search_input)
-        topics = BillTopic.objects.annotate(rank=SearchRank(vector, query)).order_by("-rank")
-        for topic in topics:
-            print(topic)
+        topics = BillTopic.objects.annotate(rank=SearchRank(vector, query))\
+            .filter(rank__gte=0.01)\
+            .order_by('-rank')
         return render(request, 'topicSearch.html', {
             'searched': search_input,
-            'topics': topics
+            'topics': topics,
         })
 
     return render(request, 'topicSearch.html', {
