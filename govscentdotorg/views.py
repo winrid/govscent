@@ -92,7 +92,7 @@ def topic_page(request, bill_topic_id):
 def topic_search_page(request):
     if request.method == 'POST':
         search_input = request.POST.get("searched")
-        vector = SearchVector("name")
+        vector = SearchVector("search_vector")
         query = SearchQuery(search_input)
         topics = BillTopic.objects.annotate(rank=SearchRank(vector, query))\
             .filter(rank__gte=0.01)\

@@ -6,6 +6,7 @@ Govscent is a Django application.
 
 - Python 3.10+
 - PostgresSQL
+  - Required: `btree_gin`
 
 ### Setup and Import Prod Data
 
