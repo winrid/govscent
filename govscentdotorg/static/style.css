@@ -39,6 +39,15 @@ body {
   color: #000;
   font-family: 'Space Grotesk', sans-serif;
 }
+
+.nav .nav-content .topic-search {
+  float: right;
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .content {
   flex: 1 0 auto;
   margin: 0 auto;

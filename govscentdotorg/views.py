@@ -1,5 +1,6 @@
 import json
 
+from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg
@@ -24,11 +25,11 @@ def get_stats_cached() -> object:
     key = 'index_stats_v2'
     index_stats = cache.get(key)
     if not index_stats:
-        average_smelliness_by_year = Bill.objects\
-            .annotate(year=TruncMonth('date'))\
-            .values('year')\
-            .annotate(score=Avg('on_topic_ranking'))\
-            .order_by('year')\
+        average_smelliness_by_year = Bill.objects \
+            .annotate(year=TruncMonth('date')) \
+            .values('year') \
+            .annotate(score=Avg('on_topic_ranking')) \
+            .order_by('year') \
             .values('year', 'score')
 
         average_smelliness_by_year_json = json.dumps(list(average_smelliness_by_year), cls=DjangoJSONEncoder)
@@ -85,4 +86,21 @@ def topic_page(request, bill_topic_id):
     return render(request, 'topic.html', {
         'bill_topic': bill_topic,
         'topic_to_bill_link': topic_to_bill_link
+    })
+
+
+def topic_search_page(request):
+    if request.method == 'POST':
+        search_input = request.POST.get("searched")
+        vector = SearchVector("name")
+        query = SearchQuery(search_input)
+        topics = BillTopic.objects.annotate(rank=SearchRank(vector, query))\
+            .filter(rank__gte=0.01)\
+            .order_by('-rank')
+        return render(request, 'topicSearch.html', {
+            'searched': search_input,
+            'topics': topics,
+        })
+
+    return render(request, 'topicSearch.html', {
     })
