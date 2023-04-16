@@ -19,17 +19,20 @@ body {
 }
 
 .nav {
+
+  .ai-warning {
+    padding: 15px 0 0 0;
+    letter-spacing: 0.5px;
+    text-align: center;
+    .font-space();
+  }
+
   .nav-content {
+    display: flex;
+    align-items: center;
     max-width: @width;
     margin: 0 auto;
-    padding: 10px 20px 20px 20px;
-
-    .ai-warning {
-      padding: 5px 0;
-      letter-spacing: 0.5px;
-      text-align: center;
-      .font-space();
-    }
+    padding: 0 20px 20px 20px;
 
     .logo, .title {
       display: inline-block;
@@ -49,6 +52,11 @@ body {
       text-decoration: none;
       color: #000;
       .font-space();
+    }
+
+    .topic-search {
+      margin-left: auto; // will move to right w/ flex on parent container
+      padding-left: 10px; // for mobile
     }
   }
 }

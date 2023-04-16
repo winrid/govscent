@@ -12,16 +12,18 @@ body {
 .font-space {
   font-family: 'Space Grotesk', sans-serif;
 }
-.nav .nav-content {
-  max-width: 1500px;
-  margin: 0 auto;
-  padding: 10px 20px 20px 20px;
-}
-.nav .nav-content .ai-warning {
-  padding: 5px 0;
+.nav .ai-warning {
+  padding: 15px 0 0 0;
   letter-spacing: 0.5px;
   text-align: center;
   font-family: 'Space Grotesk', sans-serif;
+}
+.nav .nav-content {
+  display: flex;
+  align-items: center;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 20px 20px 20px;
 }
 .nav .nav-content .logo,
 .nav .nav-content .title {
@@ -39,15 +41,10 @@ body {
   color: #000;
   font-family: 'Space Grotesk', sans-serif;
 }
-
 .nav .nav-content .topic-search {
-  float: right;
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  margin-left: auto;
+  padding-left: 10px;
 }
-
 .content {
   flex: 1 0 auto;
   margin: 0 auto;
