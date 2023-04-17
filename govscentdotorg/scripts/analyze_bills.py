@@ -1,5 +1,6 @@
 import datetime
 import os
+import traceback
 
 from govscentdotorg.models import Bill, BillTopic, BillSection
 import openai
@@ -96,6 +97,12 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
     return -1, False, True
 
 
+def trim_start_end_parenthesis(text: str) -> str:
+    if text and text.startswith('(') and text.endswith(')'):
+        text = text[1:len(text) - 1]
+    return text
+
+
 def set_focus_and_summary(bill: Bill, response: str):
     # if ValueError is thrown, we'll get an exception and openai response stored in the Bill and we can investigate later.
     # Example: Ranking on staying on topic: 10/10.
@@ -114,26 +121,53 @@ def set_focus_and_summary(bill: Bill, response: str):
         print(f"Warning, no ranking or summary found for {bill.gov_id}.")
         return
 
-    try:
-        summary_token = "Summary:"
-        summary_index = response.index(summary_token) + len(summary_token)
+    summary_token = "Summary:"
+    summary_token_index = response.find(summary_token)
+    if summary_token_index > -1:
+        summary_index = summary_token_index + len(summary_token)
         # We assume everything after topic ranking is the summary.
-        bill.text_summary = response[summary_index:top_10_index].strip()
+        bill.text_summary = trim_start_end_parenthesis(response[summary_index:top_10_index].strip())
 
         if summary_index < topic_ranking_index and len(response[topic_ranking_index:]) > 50:
             bill.on_topic_reasoning = response[topic_ranking_index + (len(topic_ranking_end_token)):].strip()
             if bill.on_topic_reasoning[0] == "." or bill.on_topic_reasoning[1] == "." or bill.on_topic_reasoning[
                 2] == ".":
                 bill.on_topic_reasoning = bill.on_topic_reasoning[bill.on_topic_reasoning.index(" "):].strip()
-    except ValueError:
-        # Text did not contain "Summary:". So, maybe it's in the format of <topics>\n\n<ranking><summary>
-        bill.text_summary = response[topic_ranking_index + 1:].strip()
-        # TODO set reasoning
+        return
+
+    # Text did not contain "Summary:". So, maybe it's in the format of <topic ranking> - <summary>
+    dash_index = response[topic_ranking_index + 1:topic_ranking_index + 10].find('-')
+    if dash_index > -1:
+        bill.text_summary = trim_start_end_parenthesis(response[topic_ranking_index + 1 + dash_index + 1:].strip())
+        return
+
+    # Maybe it's in the format of <topic ranking> . <summary>
+    dot_index = response[topic_ranking_index + 1:topic_ranking_index + 10].find('.')
+    if dot_index > -1:
+        bill.text_summary = trim_start_end_parenthesis(response[topic_ranking_index + 1 + dot_index + 1:].strip())
+        return
+
+    # Maybe it's in the format of <topics>\n<ranking> <summary>
+    beginning_text_after_ranking = response[topic_ranking_index + 1:topic_ranking_index + 5]
+    if beginning_text_after_ranking.split(' ')[0].isnumeric() and len(response[topic_ranking_index + 1:]) > 10:
+        bill.text_summary = trim_start_end_parenthesis(response[topic_ranking_index + 3:].strip())
+        return
+
+    # Maybe it's in the format of <topics>\n\n<ranking><summary>
+    potential_summary = response[topic_ranking_index + 1:].strip()
+    # It may end up just being a number.
+    if not potential_summary.isnumeric():
+        bill.text_summary = trim_start_end_parenthesis(potential_summary)
+    else:
+        # Reset if re-parsing.
+        bill.text_summary = None
+    # TODO set reasoning
 
 
 def process_analyzed_bill_sections(bill: Bill):
-    set_topics(bill, bill.final_analyze_response)
-    set_focus_and_summary(bill, bill.final_analyze_response)
+    final_analyze_response = get_bill_final_analysis_response(bill)
+    set_topics(bill, final_analyze_response)
+    set_focus_and_summary(bill, final_analyze_response)
     bill.last_analyzed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     bill.last_analyze_error = None
     # Now just save everything.
@@ -159,12 +193,25 @@ def create_word_sections_from_lines(max_words: int, text: str) -> [str]:
     return pieces
 
 
+def get_bill_final_analysis_response(bill: Bill) -> str | None:
+    """
+    Some bills are missing final_analyze_response. Re-running processing will fix that.
+    """
+    sections = bill.bill_sections.all()
+    if bill.final_analyze_response is None:
+        if len(sections) == 1:
+            if sections.first().last_analyze_response is not None:
+                return sections.first().last_analyze_response
+    return bill.final_analyze_response
+
+
 def is_ready_for_processing(bill: Bill) -> bool:
     if bill.last_analyze_response is None:
         return False
-    if bill.final_analyze_response is None:
+    if get_bill_final_analysis_response(bill) is None:
         return False
-    for section in bill.bill_sections.all():
+    sections = bill.bill_sections.all()
+    for section in sections:
         if not section.last_analyze_response:
             return False
     return True
@@ -273,6 +320,11 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
         print(f"Bill {bill.gov_id} not yet ready for processing!")
 
 
+def get_traceback(e):
+    lines = traceback.format_exception(type(e), e, e.__traceback__)
+    return ''.join(lines)
+
+
 def run(arg_reparse_only: str, year: str | None = None):
     reparse_only = arg_reparse_only == 'True'
 
@@ -286,7 +338,7 @@ def run(arg_reparse_only: str, year: str | None = None):
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
     bills = bills.order_by('-date')
-    # bills = bills.filter(gov_id="114s2943enr")
+    # bills = bills.filter(gov_id="118sres118is")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
@@ -301,9 +353,9 @@ def run(arg_reparse_only: str, year: str | None = None):
         try:
             analyze_bill_sections(bill, reparse_only)
         except Exception as e:
-            print(f"Failed for {bill.gov_id}", e)
-            bill.last_analyze_error = str(e)
+            print(f"Failed for {bill.gov_id}", e, get_traceback(e))
+            bill.last_analyze_error = get_traceback(e)
             try:
                 bill.save()
             except Exception as e:
-                print(f"Failed to save last_analyze_error for {bill.gov_id}", e)
+                print(f"Failed to save last_analyze_error for {bill.gov_id}", e, get_traceback(e))
