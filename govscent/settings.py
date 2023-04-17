@@ -89,6 +89,7 @@ CACHES = {
     } if DEBUG else {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/var/tmp/django_cache',
+        'MAX_ENTRIES': 50_000
     }
 }
 

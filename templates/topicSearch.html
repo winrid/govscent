@@ -19,7 +19,7 @@
                 {% for topic in paginated_data %}
                     <li>
                         <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a>
-                        ({{ topic.related_bills.count }} related bill{{ topic.related_bills.count|pluralize:",s" }})
+                        ({{ topic.get_bill_count_cached }} related bill{{ topic.get_bill_count_cached |pluralize:",s" }})
                     </li>
                 {% endfor %}
             </ul>

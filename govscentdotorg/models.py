@@ -9,6 +9,7 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from import_export.admin import ImportExportModelAdmin, ExportActionModelAdmin
 from django.contrib.postgres.indexes import GinIndex
+from django.core.cache import cache
 
 
 class BillTopic(models.Model):
@@ -23,6 +24,18 @@ class BillTopic(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_bill_count_cached(self) -> int:
+        """
+        Note - this will hit disk with current cache config, but usually still faster than scanning index which may hit disk anyway.
+        Especially for topics that have many bills.
+        """
+        cache_key = "topic_bill_count:" + str(self.id)
+        count = cache.get(cache_key)
+        if count is None:
+            count = self.related_bills.count()
+            cache.set(cache_key, count, 86400)  # Cache for 24 hours.
+        return count
 
 
 class BillSmell(models.Model):
