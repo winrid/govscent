@@ -34,6 +34,12 @@
                 </ol>
             {% endif %}
         </div>
+        {% if bill.text_summary %}
+            <div class="summary">
+                <h3>Summary</h3>
+                {{ bill.text_summary }}
+            </div>
+        {% endif %}
     </div>
     <div class="fastcomments-collab-chat">
         <div id="fastcomments-collab-chat-widget" class="bill-content">
