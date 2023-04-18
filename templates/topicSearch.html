@@ -10,7 +10,7 @@
         </form>
         <div class="search-result">
             {% if searched %}
-                <h3>Topic{{ topics.count|pluralize:",s" }} for: {{ searched }}</h3>
+                <h3>Topic{{ paginated_data | pluralize:",s" }} for: {{ searched }}</h3>
             {% else %}
                 <h3>All Topics</h3>
             {% endif %}
