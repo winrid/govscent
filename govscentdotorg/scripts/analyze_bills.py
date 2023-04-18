@@ -33,7 +33,7 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
         topics = []
         lines_slice = lines[0:] if is_just_topic_list else lines[0:10]
         for line in lines_slice:
-            if len(line) > 2:
+            if len(line) > 2 and not line.startswith('Top 10'):
                 if line[0].isnumeric() or line.startswith("-") or is_just_topic_list:
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
                     first_period_index = line.find(".")
@@ -71,6 +71,10 @@ def set_topics(bill: Bill, response: str):
 
 # Gets the index and whether we're dealing with a single topic in the response.
 def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
+    index = response.find("Top 10 most important topics:")
+    if index > -1:
+        return index, False, False
+
     index = response.find("Top 10")
     if index > -1:
         return index, False, False
@@ -338,7 +342,7 @@ def run(arg_reparse_only: str, year: str | None = None):
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
     bills = bills.order_by('-date')
-    # bills = bills.filter(gov_id="118sres118is")
+    # bills = bills.filter(gov_id="117s2972is")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
