@@ -39,7 +39,7 @@ def get_stats_cached() -> object:
 
         index_stats = {
             'count_bills': Bill.objects.count(),
-            'count_bills_analyzed': Bill.objects.filter(on_topic_ranking__isnull=False).count(),
+            'count_bills_analyzed': Bill.objects.filter(last_analyzed_at__isnull=False).count(),
             'average_smelliness_by_year_json': average_smelliness_by_year_json
         }
     cache.set(key, index_stats)
