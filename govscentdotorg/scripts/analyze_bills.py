@@ -354,7 +354,7 @@ def run(arg_reparse_only: str, year: str | None = None):
     else:
         print(f"Will analyze bills for all years.")
 
-    print(f"Will analyze {len(bills)} bills.")
+    print(f"Will analyze {bills.count()} bills.")
     for bill in bills:
         print(F"Analyzing {bill.gov_id}")
         # print(f"Analyzing {bill.text}")
