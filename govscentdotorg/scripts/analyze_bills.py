@@ -8,6 +8,10 @@ import openai
 WORDS_MAX = 3000
 model = "gpt-3.5-turbo"
 
+bill_save_excluded_fields = {'title', 'text', 'bill_sections', 'topics', 'smells'}
+# automatically populate a list with all fields, except the ones you want to exclude
+bill_fields_to_update = [f.name for f in Bill._meta.get_fields() if f.name not in bill_save_excluded_fields and not f.auto_created]
+
 
 def extract_response_topics(bill: Bill, response: str) -> [str]:
     [top_10_index, is_single_topic, is_just_topic_list] = get_top_10_index(bill, response)
@@ -174,8 +178,6 @@ def process_analyzed_bill_sections(bill: Bill):
     set_focus_and_summary(bill, final_analyze_response)
     bill.last_analyzed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     bill.last_analyze_error = None
-    # Now just save everything.
-    bill.save()
 
 
 def create_word_sections(max_words: int, text: str) -> [str]:
@@ -320,6 +322,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
         print(f"Processed {len(sections)} sections. Done.")
     if is_ready_for_processing(bill):
         process_analyzed_bill_sections(bill)
+        # Now just save everything.
+        bill.save(update_fields=bill_fields_to_update)
     else:
         print(f"Bill {bill.gov_id} not yet ready for processing!")
 
@@ -360,6 +364,6 @@ def run(arg_reparse_only: str, year: str | None = None):
             print(f"Failed for {bill.gov_id}", e, get_traceback(e))
             bill.last_analyze_error = get_traceback(e)
             try:
-                bill.save()
+                bill.save(update_fields=bill_fields_to_update)
             except Exception as e:
                 print(f"Failed to save last_analyze_error for {bill.gov_id}", e, get_traceback(e))
