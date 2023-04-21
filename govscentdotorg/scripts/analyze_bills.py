@@ -75,10 +75,6 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
     if index > -1:
         return index, False, False
 
-    index = response.find("Topic:")
-    if index > -1:
-        return index, True, False
-
     if response[:2] == "1.":
         return 0, False, False
 
@@ -89,6 +85,10 @@ def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
     list_start_index = response.find('-')
     if list_start_index > -1:
         return list_start_index, False, False
+
+    index = response.find("Topic:")
+    if index > -1:
+        return index, True, False
 
     # In this case, probably just a raw list of topics by line.
     if len(bill.bill_sections.all()) > 1:
