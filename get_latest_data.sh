@@ -10,13 +10,11 @@ if previous_instance_active
 then
   date +'PID: $$ Previous instance is still active at %H:%M:%S, aborting ... '
 else
-  cd /home/winrid/congress
-  python3 -m venv env
+  cd /home/winrid/congress || exit
   source env/bin/activate
   usc-run govinfo --collections=BILLS --store=html
 
-  cd /home/winrid/govscent
-  python3 -m venv env
+  cd /home/winrid/govscent || exit
   source env/bin/activate
   python3.10 manage.py runscript usa_import_bills --script-args /home/winrid/congress/data False False
 fi
