@@ -35,22 +35,29 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
                 return line.strip()
     else:
         topics = []
-        lines_slice = lines[0:] if is_just_topic_list else lines[0:10]
+        # lines_slice is 11 lines because the first line could be the "Top 10..." header.
+        lines_slice = lines[0:] if is_just_topic_list else lines[0:11]
         for line in lines_slice:
             if len(line) > 2 and not line.startswith('Top 10'):
                 if line[0].isnumeric() or line.startswith("-") or line.find(':') > -1 or is_just_topic_list:
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
                     first_period_index = line.find(".")
-                    if -1 < first_period_index < 3:
+                    if -1 < first_period_index < 4:
                         line_after_first_number = line[first_period_index + 1:].strip()
-                        topics.append(line_after_first_number)
+                        final_version = trim_topic_dash_ten_on_end(line_after_first_number)
+                        if final_version is not None:
+                            topics.append(final_version)
                     elif line.find(':') > -1:
                         first_colon_index = line.find(':')
                         line_after_first_char = line[first_colon_index + 1:].strip()
-                        topics.append(line_after_first_char)
+                        final_version = trim_topic_dash_ten_on_end(line_after_first_char)
+                        if final_version is not None:
+                            topics.append(final_version)
                     elif line.startswith("-"):
                         line_after_first_char = line[1:].strip()
-                        topics.append(line_after_first_char)
+                        final_version = trim_topic_dash_ten_on_end(line_after_first_char)
+                        if final_version is not None:
+                            topics.append(final_version)
                     elif is_just_topic_list:
                         topics.append(line)
                 elif not is_just_topic_list:
@@ -58,6 +65,21 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
                     break
         return topics
 
+
+def trim_topic_dash_ten_on_end(text: str) -> str | None:
+    slash_ten_index = text.rfind('/10')
+    if slash_ten_index > -1:
+        # Example: "Some topic - 5/10" - We don't want the 5/10 on the end.
+        if text.endswith('/10') or text.endswith('/10.'):
+            # Subtract 2 to remove digit before /10.
+            line_dash_ten_trimmed = text[:slash_ten_index - 2].strip()
+            if line_dash_ten_trimmed.endswith('-'):
+                line_dash_ten_trimmed = line_dash_ten_trimmed[:len(line_dash_ten_trimmed) - 1].strip()
+            if len(line_dash_ten_trimmed) > 6:
+                return line_dash_ten_trimmed
+            else:
+                return None
+    return text
 
 def get_topic_by_text(text: str) -> BillTopic:
     topic = BillTopic.objects.filter(name__exact=text).first()
@@ -354,7 +376,8 @@ def run(arg_reparse_only: str, year: str | None = None):
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
     bills = bills.order_by('-date')
-    # bills = bills.filter(gov_id="117s2972is")
+    # bills = bills.filter(gov_id="112hjres54ih")
+    # bills = bills.filter(gov_id="105hr750rfs")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
