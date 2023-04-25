@@ -8,6 +8,10 @@ import openai
 WORDS_MAX = 3000
 model = "gpt-3.5-turbo"
 
+bill_save_excluded_fields = {'title', 'text', 'bill_sections', 'topics', 'smells'}
+# automatically populate a list with all fields, except the ones you want to exclude
+bill_fields_to_update = [f.name for f in Bill._meta.get_fields() if f.name not in bill_save_excluded_fields and not f.auto_created]
+
 
 def extract_response_topics(bill: Bill, response: str) -> [str]:
     [top_10_index, is_single_topic, is_just_topic_list] = get_top_10_index(bill, response)
@@ -33,7 +37,7 @@ def extract_response_topics(bill: Bill, response: str) -> [str]:
         topics = []
         lines_slice = lines[0:] if is_just_topic_list else lines[0:10]
         for line in lines_slice:
-            if len(line) > 2:
+            if len(line) > 2 and not line.startswith('Top 10'):
                 if line[0].isnumeric() or line.startswith("-") or line.find(':') > -1 or is_just_topic_list:
                     # Example: 1. H.R. 5889 - a bill introduced in the House of Representatives.
                     first_period_index = line.find(".")
@@ -75,6 +79,10 @@ def set_topics(bill: Bill, response: str):
 
 # Gets the index and whether we're dealing with a single topic in the response.
 def get_top_10_index(bill: Bill, response: str) -> (int, bool, bool):
+    index = response.find("Top 10 most important topics:")
+    if index > -1:
+        return index, False, False
+
     index = response.find("Top 10")
     if index > -1:
         return index, False, False
@@ -178,8 +186,6 @@ def process_analyzed_bill_sections(bill: Bill):
     set_focus_and_summary(bill, final_analyze_response)
     bill.last_analyzed_at = datetime.datetime.now(tz=datetime.timezone.utc)
     bill.last_analyze_error = None
-    # Now just save everything.
-    bill.save()
 
 
 def create_word_sections(max_words: int, text: str) -> [str]:
@@ -324,6 +330,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
         print(f"Processed {len(sections)} sections. Done.")
     if is_ready_for_processing(bill):
         process_analyzed_bill_sections(bill)
+        # Now just save everything.
+        bill.save(update_fields=bill_fields_to_update)
     else:
         print(f"Bill {bill.gov_id} not yet ready for processing!")
 
@@ -346,7 +354,7 @@ def run(arg_reparse_only: str, year: str | None = None):
         is_latest_revision=True, last_analyzed_at__isnull=True).only("id", "gov_id", "text", "bill_sections")
 
     bills = bills.order_by('-date')
-    # bills = bills.filter(gov_id="118sres118is")
+    # bills = bills.filter(gov_id="117s2972is")
 
     if year is not None:
         print(f"Will analyze bills for the year {year}.")
@@ -354,7 +362,7 @@ def run(arg_reparse_only: str, year: str | None = None):
     else:
         print(f"Will analyze bills for all years.")
 
-    print(f"Will analyze {len(bills)} bills.")
+    print(f"Will analyze {bills.count()} bills.")
     for bill in bills:
         print(F"Analyzing {bill.gov_id}")
         # print(f"Analyzing {bill.text}")
@@ -364,6 +372,6 @@ def run(arg_reparse_only: str, year: str | None = None):
             print(f"Failed for {bill.gov_id}", e, get_traceback(e))
             bill.last_analyze_error = get_traceback(e)
             try:
-                bill.save()
+                bill.save(update_fields=bill_fields_to_update)
             except Exception as e:
                 print(f"Failed to save last_analyze_error for {bill.gov_id}", e, get_traceback(e))

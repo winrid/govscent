@@ -9,6 +9,7 @@ from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
+from django.views.decorators.csrf import csrf_exempt
 
 from govscentdotorg.models import Bill
 from govscentdotorg.models import BillTopic
@@ -38,7 +39,7 @@ def get_stats_cached() -> object:
 
         index_stats = {
             'count_bills': Bill.objects.count(),
-            'count_bills_analyzed': Bill.objects.filter(on_topic_ranking__isnull=False).count(),
+            'count_bills_analyzed': Bill.objects.filter(last_analyzed_at__isnull=False).count(),
             'average_smelliness_by_year_json': average_smelliness_by_year_json
         }
     cache.set(key, index_stats)
@@ -113,6 +114,7 @@ def get_topics_query_set(request, search_input: str | None):
 
 
 @cache_page(5 * 15)  # Cache for 5 minutes.
+@csrf_exempt
 def topic_search_page(request):
     search_input = get_topic_search_query(request)
     page_number = request.POST.get('page')
