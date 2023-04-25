@@ -279,7 +279,6 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             section.save()
             sections.append(section)
         bill.bill_sections.set(sections)
-        bill.save()
 
     sections = bill.bill_sections.all()
     if not reparse_only:
