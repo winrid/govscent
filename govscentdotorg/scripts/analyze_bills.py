@@ -150,8 +150,18 @@ def set_focus_and_summary(bill: Bill, response: str):
     if topic_ranking_index == -1:
         print(f"Warning, no ranking or summary found for {bill.gov_id}.")
         return
+    # now walk backward from there until we find something that's not a number or a decimal.
+    topic_ranking_raw = ""
+    index = topic_ranking_index
+    while True:
+        char = response[index]
+        if char.isnumeric() or char == ".":
+            topic_ranking_raw = char + topic_ranking_raw
+            index -= 1
+        else:
+            break
     # cast to int and round incase ranking like 0.5
-    topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
+    topic_ranking = int(topic_ranking_raw.strip())
     bill.on_topic_ranking = topic_ranking
     [top_10_index, _is_single_topic, _] = get_top_10_index(bill, response)
 
