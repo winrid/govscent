@@ -152,7 +152,7 @@ def set_focus_and_summary(bill: Bill, response: str):
         return
     # now walk backward from there until we find something that's not a number or a decimal.
     topic_ranking_raw = ""
-    index = topic_ranking_index
+    index = topic_ranking_index - 1
     while True:
         char = response[index]
         if char.isnumeric() or char == ".":
@@ -161,7 +161,7 @@ def set_focus_and_summary(bill: Bill, response: str):
         else:
             break
     # cast to int and round incase ranking like 0.5
-    topic_ranking = int(topic_ranking_raw.strip())
+    topic_ranking = int(float(topic_ranking_raw.strip()))
     bill.on_topic_ranking = topic_ranking
     [top_10_index, _is_single_topic, _] = get_top_10_index(bill, response)
 
