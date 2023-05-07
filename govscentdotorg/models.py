@@ -140,7 +140,7 @@ class BillTopicAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
 class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'on_topic_ranking', 'date')
-    list_filter = ('is_latest_revision', ('last_analyze_error', EmptyFieldListFilter), ('topics', EmptyFieldListFilter), ('on_topic_ranking', RangeNumericFilter))
+    list_filter = ('is_latest_revision', ('last_analyze_error', EmptyFieldListFilter), ('on_topic_ranking', RangeNumericFilter))
     search_fields = ('gov_id',)
     raw_id_fields = ('topics', 'bill_sections')
     readonly_fields = ('section_links',)
