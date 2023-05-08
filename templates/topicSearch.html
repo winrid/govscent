@@ -3,8 +3,11 @@
 
 {% block content %}
     <div class="topic-search-box">
+        <p class="search-help">
+            Topic and themes have been extracted from all bills. Search for bills by topic here.
+        </p>
         <form id="form" role="search" method=GET>
-            <input type="search" id="query" name="searched" placeholder="Search..."
+            <input type="search" id="query" name="searched" placeholder="Search topics..."
                    aria-label="Search through site content" value="{{ searched | default_if_none:'' }}"/>
             <button class="text-search-button" type="submit">Search</button>
         </form>
