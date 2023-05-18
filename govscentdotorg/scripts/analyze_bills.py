@@ -210,9 +210,19 @@ def process_analyzed_bill_sections(bill: Bill):
     bill.last_analyze_error = None
 
 
-def create_word_sections(max_words: int, text: str) -> [str]:
-    pieces = text.split(" ")
-    return (" ".join(pieces[i:i + max_words]) for i in range(0, len(pieces), max_words))
+def create_word_sections(max_words: int, bill: Bill):
+    sections = []
+    pieces = bill.text.split(" ")
+    for i in range(0, len(pieces), max_words):
+        chunk_start = i
+        chunk_end = i + max_words
+        section = BillSection(
+            text_start=chunk_start,
+            text_end=chunk_end,
+        )
+        section.save()
+        sections.append(section)
+    bill.bill_sections.set(sections)
 
 
 def create_word_sections_from_lines(max_words: int, text: str) -> [str]:
@@ -300,15 +310,7 @@ def reduce_topics(bill: Bill) -> str:
 def analyze_bill_sections(bill: Bill, reparse_only: bool):
     if not bill.bill_sections or len(bill.bill_sections.all()) == 0:
         print('Setting up bill sections.')
-        sections = []
-        chunks_of_words = create_word_sections(WORDS_MAX, bill.text)
-        for chunk in chunks_of_words:
-            section = BillSection(
-                text=chunk
-            )
-            section.save()
-            sections.append(section)
-        bill.bill_sections.set(sections)
+        create_word_sections(WORDS_MAX, bill)
 
     sections = bill.bill_sections.all()
     if not reparse_only:
@@ -316,9 +318,9 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             if not section.last_analyze_response:
                 print(f"Processing section {index + 1}/{len(sections)} of {bill.gov_id}")
                 # If we can, this is done all in one prompt to try to reduce # of tokens.
-                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.text}" \
+                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.get_text(bill.text)}" \
                     if len(
-                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
+                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.get_text(bill.text)}"
                 completion = openai.ChatCompletion.create(model=model, messages=[
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": prompt}

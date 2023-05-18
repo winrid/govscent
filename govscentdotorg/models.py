@@ -51,11 +51,17 @@ class BillSmell(models.Model):
 
 
 class BillSection(models.Model):
-    text = models.TextField()
+    text = models.TextField()  # TODO remove
+    text_start = models.PositiveIntegerField(blank=True, null=True) # TODO NOT NULL
+    text_end = models.PositiveIntegerField(blank=True, null=True) # TODO NOT NULL
     last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
 
+    def get_text(self, bill_text: str):
+        if self.text_start is not None and self.text_end is not None:
+            return bill_text.split(" ")[self.text_start:self.text_end]
+        return self.text
 
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
@@ -157,3 +163,4 @@ class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionMod
 
 class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('id', 'last_analyze_error')
+    # TODO show text in admin via get_text
