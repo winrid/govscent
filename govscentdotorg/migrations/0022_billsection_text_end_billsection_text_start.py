@@ -14,7 +14,7 @@ def migrate_sections(apps, schema_editor):
     print(f'Will fix {target_count} sections.')
     for section in sections_to_fix:
         print(f'Fixing {section.id}')
-        bill = Bill.objects.filter(bill_sections__in=section).only('text').first()
+        bill = Bill.objects.filter(bill_sections__in=[section]).only('text').first()
         if bill is None:
             print(f'WARNING bill not found for section {section.id}')
             continue
