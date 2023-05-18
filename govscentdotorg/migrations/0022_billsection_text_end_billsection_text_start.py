@@ -4,8 +4,12 @@ from django.db import migrations, models
 
 
 def find_sublist_index(source, sublist) -> int:
+    sub_len = len(sublist)
     for idx in range(len(source) - len(sublist) + 1):
-        if source[idx: idx + len(sublist)] == sublist:
+        sub_idx = 0
+        while sub_idx < sub_len and sublist[sub_idx] == source[idx + sub_idx]:
+            sub_idx += 1
+        if sub_idx == sub_len:
             return idx
     return -1
 
