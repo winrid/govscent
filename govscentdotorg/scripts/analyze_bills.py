@@ -1,16 +1,35 @@
 import datetime
 import os
 import traceback
+from time import sleep
+from typing import Optional
 
 from govscentdotorg.models import Bill, BillTopic, BillSection
 import openai
 
-WORDS_MAX = 3000
+WORDS_MAX = 2800
 model = "gpt-3.5-turbo"
 
 bill_save_excluded_fields = {'title', 'text', 'bill_sections', 'topics', 'smells'}
 # automatically populate a list with all fields, except the ones you want to exclude
-bill_fields_to_update = [f.name for f in Bill._meta.get_fields() if f.name not in bill_save_excluded_fields and not f.auto_created]
+bill_fields_to_update = [f.name for f in Bill._meta.get_fields() if
+                         f.name not in bill_save_excluded_fields and not f.auto_created]
+
+
+def openai_with_rate_limit_handling(prompt: str, retry: Optional[bool]):
+    try:
+        completion = openai.ChatCompletion.create(model=model, messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ])
+        return completion
+    except openai.error.RateLimitError as e:
+        if retry:
+            print('Got RateLimitError, waiting two minutes and trying again.', e)
+            sleep(120)
+            return openai_with_rate_limit_handling(prompt=prompt, retry=False)
+        else:
+            raise e
 
 
 def extract_response_topics(bill: Bill, response: str) -> [str]:
@@ -81,6 +100,7 @@ def trim_topic_dash_ten_on_end(text: str) -> str | None:
                 return None
     return text
 
+
 def get_topic_by_text(text: str) -> BillTopic:
     topic = BillTopic.objects.filter(name__exact=text).first()
     if topic is None:
@@ -150,8 +170,18 @@ def set_focus_and_summary(bill: Bill, response: str):
     if topic_ranking_index == -1:
         print(f"Warning, no ranking or summary found for {bill.gov_id}.")
         return
+    # now walk backward from there until we find something that's not a number or a decimal.
+    topic_ranking_raw = ""
+    index = topic_ranking_index - 1
+    while True:
+        char = response[index]
+        if char.isnumeric() or char == ".":
+            topic_ranking_raw = char + topic_ranking_raw
+            index -= 1
+        else:
+            break
     # cast to int and round incase ranking like 0.5
-    topic_ranking = int(response[topic_ranking_index - 2:topic_ranking_index].strip())
+    topic_ranking = int(float(topic_ranking_raw.strip()))
     bill.on_topic_ranking = topic_ranking
     [top_10_index, _is_single_topic, _] = get_top_10_index(bill, response)
 
@@ -292,10 +322,7 @@ def reduce_topics(bill: Bill) -> str:
         for index, chunk in enumerate(chunks):
             print(f"Summarizing chunk {index} with {len(chunk.split(' '))} words.")
             prompt = f"List the top 10 most important topics the following text:\n{chunk}"
-            completion = openai.ChatCompletion.create(model=model, messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ])
+            completion = openai_with_rate_limit_handling(prompt=prompt, retry=True)
             print(completion)
             response_text = completion.choices[0].message.content
             print(response_text)
@@ -320,11 +347,8 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
                 # If we can, this is done all in one prompt to try to reduce # of tokens.
                 prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.get_text(bill.text)}" \
                     if len(
-                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.get_text(bill.text)}"
-                completion = openai.ChatCompletion.create(model=model, messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": prompt}
-                ])
+                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.text}"
+                completion = openai_with_rate_limit_handling(prompt=prompt, retry=True)
                 print(completion)
                 response_text = completion.choices[0].message.content
                 section.last_analyze_response = response_text
