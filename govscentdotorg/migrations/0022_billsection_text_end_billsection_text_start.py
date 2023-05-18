@@ -37,6 +37,7 @@ def migrate_sections(apps, schema_editor):
         section.text_start = tokens_start
         section.text_end = tokens_start + len(section_tokens)
         section.save()
+        count = count + 1
         # We will remove section text in a 2nd migration after data confirmed.
         print(f'Fixed section {count} out of {target_count}')
 
