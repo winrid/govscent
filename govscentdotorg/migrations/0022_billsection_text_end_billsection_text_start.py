@@ -3,6 +3,13 @@
 from django.db import migrations, models
 
 
+def find_sublist_index(source, sublist) -> int:
+    for idx in range(len(source) - len(sublist) + 1):
+        if source[idx: idx + len(sublist)] == sublist:
+            return idx
+    return -1
+
+
 def migrate_sections(apps, schema_editor):
     # noinspection PyPep8Naming
     Bill = apps.get_model("govscentdotorg", "Bill")
@@ -23,7 +30,7 @@ def migrate_sections(apps, schema_editor):
             continue
         bill_tokens = bill.text.split(" ")
         section_tokens = section.text.split(" ")
-        tokens_start = bill_tokens.find(section_tokens)
+        tokens_start = find_sublist_index(bill_tokens, section_tokens)
         if tokens_start == -1:
             print(f'WARNING did not find section {section.id} in bill {bill.id} text?')
             continue
