@@ -171,7 +171,7 @@ class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
         bill = Bill.objects.filter(bill_sections__in=[obj]).only('text').first()
         if not Bill:
             return mark_safe('Bill Missing.')
-        html = obj.get_text(bill.text)
+        html = f'<textarea readonly>{obj.get_text(bill.text)}</textarea>'
         return mark_safe(html)
 
     section_text.short_description = 'Section Text'
