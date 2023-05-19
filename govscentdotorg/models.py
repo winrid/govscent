@@ -60,8 +60,8 @@ class BillSection(models.Model):
 
     def get_text(self, bill_text: str):
         if self.text_start is not None and self.text_end is not None:
-            return bill_text.split(" ")[self.text_start:self.text_end]
-        return self.text
+            return " ".join(bill_text.split(" ")[self.text_start:self.text_end])
+        return None
 
 
 class Bill(models.Model):
