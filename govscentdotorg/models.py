@@ -174,4 +174,4 @@ class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
         html = obj.get_text(bill.text)
         return mark_safe(html)
 
-    section_text.short_description = 'Sections'
+    section_text.short_description = 'Section Text'
