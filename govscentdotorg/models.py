@@ -52,6 +52,7 @@ class BillSmell(models.Model):
 
 
 class BillSection(models.Model):
+    text = models.TextField()  # TODO remove
     text_start = models.PositiveIntegerField(blank=True, null=True)  # TODO NOT NULL
     text_end = models.PositiveIntegerField(blank=True, null=True)  # TODO NOT NULL
     last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
