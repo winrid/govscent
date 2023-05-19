@@ -52,9 +52,8 @@ class BillSmell(models.Model):
 
 
 class BillSection(models.Model):
-    text = models.TextField()  # TODO remove
-    text_start = models.PositiveIntegerField(blank=True, null=True) # TODO NOT NULL
-    text_end = models.PositiveIntegerField(blank=True, null=True) # TODO NOT NULL
+    text_start = models.PositiveIntegerField(blank=True, null=True)  # TODO NOT NULL
+    text_end = models.PositiveIntegerField(blank=True, null=True)  # TODO NOT NULL
     last_analyze_model = models.CharField(max_length=100, default="gpt-3-turbo", null=True)
     last_analyze_error = models.TextField(default=None, blank=True, null=True)
     last_analyze_response = models.TextField(default=None, blank=True, null=True)
@@ -63,6 +62,7 @@ class BillSection(models.Model):
         if self.text_start is not None and self.text_end is not None:
             return bill_text.split(" ")[self.text_start:self.text_end]
         return self.text
+
 
 class Bill(models.Model):
     gov = models.CharField(max_length=8, verbose_name="Government")
@@ -146,7 +146,8 @@ class BillTopicAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
 class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionModelAdmin):
     date_hierarchy = 'date'
     list_display = ('title', 'on_topic_ranking', 'date')
-    list_filter = ('is_latest_revision', ('last_analyze_error', EmptyFieldListFilter), ('on_topic_ranking', RangeNumericFilter))
+    list_filter = (
+    'is_latest_revision', ('last_analyze_error', EmptyFieldListFilter), ('on_topic_ranking', RangeNumericFilter))
     search_fields = ('gov_id',)
     raw_id_fields = ('topics', 'bill_sections')
     readonly_fields = ('section_links',)
@@ -164,4 +165,13 @@ class BillAdmin(NumericFilterModelAdmin, ImportExportModelAdmin, ExportActionMod
 
 class BillSectionAdmin(ImportExportModelAdmin, ExportActionModelAdmin):
     list_display = ('id', 'last_analyze_error')
-    # TODO show text in admin via get_text
+    readonly_fields = ('section_text',)
+
+    def section_text(self, obj):
+        bill = Bill.objects.filter(bill_sections__in=[obj]).only('text').first()
+        if not Bill:
+            return mark_safe('Bill Missing.')
+        html = obj.get_text(bill.text)
+        return mark_safe(html)
+
+    section_text.short_description = 'Sections'
