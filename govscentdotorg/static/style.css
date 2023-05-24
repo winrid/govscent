@@ -12,6 +12,9 @@ body {
 .font-space {
   font-family: 'Space Grotesk', sans-serif;
 }
+.text-center {
+  text-align: center;
+}
 .nav .ai-warning {
   padding: 15px 0 0 0;
   letter-spacing: 0.5px;
