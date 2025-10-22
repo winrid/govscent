@@ -345,9 +345,9 @@ def analyze_bill_sections(bill: Bill, reparse_only: bool):
             if not section.last_analyze_response:
                 print(f"Processing section {index + 1}/{len(sections)} of {bill.gov_id}")
                 # If we can, this is done all in one prompt to try to reduce # of tokens.
-                prompt = f"Summarize and list the top 10 most important topics the following text, and rank it from 0 to 10 on staying on topic:\n{section.get_text(bill.text)}" \
+                prompt = f"Summarize and list the top 10 most important topics (short topic descriptions) the following text, and rank it from 0 to 10 on staying on topic:\n{section.get_text(bill.text)}" \
                     if len(
-                    sections) == 1 else f"List the top 10 most important topics the following text:\n{section.get_text(bill.text)}"
+                    sections) == 1 else f"List the top 10 most important topics (short topic descriptions) the following text:\n{section.get_text(bill.text)}"
                 completion = openai_with_rate_limit_handling(prompt=prompt, retry=True)
                 print(completion)
                 response_text = completion.choices[0].message.content
