@@ -7,8 +7,8 @@ from typing import Optional
 from govscentdotorg.models import Bill, BillTopic, BillSection
 import openai
 
-WORDS_MAX = 9800
-model = "gpt-3.5-turbo-16k"
+WORDS_MAX = 100000
+model = "gpt-5-mini"
 
 bill_save_excluded_fields = {'title', 'text', 'bill_sections', 'topics', 'smells'}
 # automatically populate a list with all fields, except the ones you want to exclude
