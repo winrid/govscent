@@ -16,6 +16,7 @@ django-import-export==3.2.0
 djangorestframework==3.14.0
 et-xmlfile==1.1.0
 frozenlist==1.3.3
+gunicorn==23.0.0
 idna==3.4
 Markdown==3.4.3
 MarkupPy==1.14
