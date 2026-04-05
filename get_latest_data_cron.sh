@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # This is ran every six hours in production.
+cd "$(dirname "$0")" || exit 1
 
 previous_instance_active () {
   pgrep -a sh | grep -v "^$$ " | grep --quiet 'get_latest_data.sh'
