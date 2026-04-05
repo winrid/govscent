@@ -31,6 +31,7 @@
             <div class="site-nav-links">
                 <a href="/" class="nav-link {% block nav_home_active %}{% endblock %}">Bills</a>
                 <a href="{% url 'topic_search_page' %}" class="nav-link {% block nav_topics_active %}{% endblock %}">Topics</a>
+                <a href="{% url 'stats_page' %}" class="nav-link {% block nav_stats_active %}{% endblock %}">Stats</a>
                 <a href="{% url 'bill_search_page' %}" class="nav-link {% block nav_search_active %}{% endblock %}">Search</a>
             </div>
         </div>

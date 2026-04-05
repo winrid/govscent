@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static humanize bill_tags %}
+
+{% block nav_stats_active %}is-active{% endblock %}
+{% block title %}Stats | govscent.org{% endblock %}
+{% block meta_description %}Statistics and trends from AI analysis of US Congressional bills.{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1 class="hero-title">Bill Statistics</h1>
+    <p class="hero-subtitle">Trends and breakdowns from AI analysis of US Congressional legislation.</p>
+    {% if stats %}
+    <div class="hero-stats">
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.count_bills|intcomma }}</span>
+            <span class="stat-label">Bills Tracked</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-number">{{ stats.count_bills_analyzed|intcomma }}</span>
+            <span class="stat-label">Analyzed</span>
+        </div>
+    </div>
+    {% endif %}
+</section>
+
+{% if stats %}
+<section class="chart-section" style="margin-top: 0; border-top: none;">
+    <h2 class="section-heading">On-Topic Score Over Time</h2>
+    <p class="section-subtitle">Monthly average of how well bills stay on their stated topic (higher is better)</p>
+    <div class="chart-container">
+        <script src="{% static 'chart.js' %}"></script>
+        <script type="application/json" id="chart-data">{{ stats.average_score_by_month_json|safe }}</script>
+        <canvas id="score-chart"></canvas>
+    </div>
+</section>
+{% endif %}
+
+{% if congress_breakdown %}
+<section style="margin-top: 48px;">
+    <h2 class="section-heading">By Congress Session</h2>
+    <p class="section-subtitle">Bill counts and average on-topic scores per congressional session</p>
+    <div class="bill-list">
+        {% for row in congress_breakdown %}
+        <a href="{% url 'congress_page' row.congress %}" class="bill-list-item">
+            <div class="bill-list-item-left">
+                <div class="bill-list-item-content">
+                    <h3 class="bill-list-item-title">{{ row.congress }}th Congress</h3>
+                    <div class="bill-list-item-meta">
+                        <span>{{ row.total|intcomma }} bills</span>
+                        <span>{{ row.analyzed|intcomma }} analyzed</span>
+                    </div>
+                </div>
+            </div>
+            {% if row.avg_score is not None %}
+            <div class="bill-list-item-score {% score_color row.avg_score|floatformat:'0' %}">
+                {{ row.avg_score|floatformat:"1" }}<span class="score-denominator">/10</span>
+            </div>
+            {% endif %}
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

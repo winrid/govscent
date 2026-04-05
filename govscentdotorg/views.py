@@ -100,26 +100,32 @@ def index(request):
     sort = request.GET.get('sort', '-date').strip()
     page = request.GET.get('page', 1)
 
-    qs = Bill.objects.filter(gov__exact="USA", last_analyzed_at__isnull=False)
+    # Build a cache key from the filter params (page excluded — paginator handles that)
+    cache_key = f'index_bills:{congress}:{bill_type}:{score_min}:{score_max}:{sort}'
+    qs = cache.get(cache_key)
+    if qs is None:
+        qs = Bill.objects.filter(gov__exact="USA", last_analyzed_at__isnull=False)
+
+        if congress:
+            qs = qs.filter(gov_id__startswith=congress)
+        if bill_type:
+            qs = qs.filter(type__iexact=bill_type)
+        if score_min:
+            try:
+                qs = qs.filter(on_topic_ranking__gte=int(score_min))
+            except ValueError:
+                pass
+        if score_max:
+            try:
+                qs = qs.filter(on_topic_ranking__lte=int(score_max))
+            except ValueError:
+                pass
+
+        order = ALLOWED_SORTS.get(sort, '-date')
+        qs = qs.order_by(order)
+        cache.set(cache_key, qs, 21600)  # 6 hours
+
     qs = qs.prefetch_related('topics')
-
-    if congress:
-        qs = qs.filter(gov_id__startswith=congress)
-    if bill_type:
-        qs = qs.filter(type__iexact=bill_type)
-    if score_min:
-        try:
-            qs = qs.filter(on_topic_ranking__gte=int(score_min))
-        except ValueError:
-            pass
-    if score_max:
-        try:
-            qs = qs.filter(on_topic_ranking__lte=int(score_max))
-        except ValueError:
-            pass
-
-    order = ALLOWED_SORTS.get(sort, '-date')
-    qs = qs.order_by(order)
 
     paginator = Paginator(qs, 24)
     paginated_bills = paginator.get_page(page)
@@ -364,4 +370,28 @@ def congress_page(request, congress_number: int):
             'type': bill_type,
             'sort': sort,
         },
+    })
+
+
+def stats_page(request):
+    stats = get_stats_cached()
+
+    # Per-congress breakdown
+    congress_breakdown_key = 'stats_congress_breakdown'
+    congress_breakdown = cache.get(congress_breakdown_key)
+    if congress_breakdown is None:
+        from django.db.models import Q, Func, CharField
+        rows = Bill.objects.filter(gov='USA').annotate(
+            congress=Func('gov_id', function='SUBSTRING', template="%(function)s(%(expressions)s FROM '^[0-9]+')", output_field=CharField())
+        ).values('congress').annotate(
+            total=Count('id'),
+            analyzed=Count('id', filter=Q(last_analyzed_at__isnull=False)),
+            avg_score=Avg('on_topic_ranking', filter=Q(on_topic_ranking__isnull=False)),
+        ).order_by('-congress')
+        congress_breakdown = [r for r in rows if r['congress']]
+        cache.set(congress_breakdown_key, congress_breakdown, 3600)
+
+    return render(request, 'stats.html', {
+        'stats': stats,
+        'congress_breakdown': congress_breakdown,
     })

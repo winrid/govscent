@@ -11,6 +11,7 @@ urlpatterns = [
     path('topic/<str:bill_topic_id>', views.topic_page, name='topic_page'),
     path('topic/<str:bill_topic_id>/<path:slug>', views.topic_page, name='topic_page_with_slug'),
     path('search/topic', views.topic_search_page, name="topic_search_page"),
+    path('stats', views.stats_page, name="stats_page"),
     path('search/bill', views.bill_search_page, name="bill_search_page"),
     path('congress/<int:congress_number>', views.congress_page, name="congress_page"),
     path('api/', include(api_router.urls)),
