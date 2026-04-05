@@ -322,14 +322,7 @@ def congress_page(request, congress_number: int):
 
 
 def stats_page(request):
-    from govscentdotorg.services.cache_warmer import warm_all_caches
-    stats = get_stats_cached()
-    breakdown = cache.get('stats_congress_breakdown')
-    if not stats or breakdown is None:
-        warm_all_caches()
-        stats = get_stats_cached()
-        breakdown = cache.get('stats_congress_breakdown')
     return render(request, 'stats.html', {
-        'stats': stats,
-        'congress_breakdown': breakdown or [],
+        'stats': get_stats_cached(),
+        'congress_breakdown': cache.get('stats_congress_breakdown') or [],
     })
