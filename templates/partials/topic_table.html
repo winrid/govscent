@@ -4,20 +4,20 @@
     <thead>
         <tr>
             <th class="col-topic-name">Topic</th>
-            <th class="col-topic-count">Bills</th>
             <th class="col-topic-score">Avg Score</th>
+            <th class="col-topic-count">Bills</th>
         </tr>
     </thead>
     <tbody>
         {% for topic in topics %}
         <tr onclick="window.location='{% url 'topic_page' topic.id %}'" class="clickable-row">
             <td class="col-topic-name"><a href="{% url 'topic_page' topic.id %}">{{ topic.name }}</a></td>
-            <td class="col-topic-count">{{ topic.bill_count }}</td>
             <td class="col-topic-score">
                 {% if topic.avg_score %}
                 <span class="score-number {% score_color topic.avg_score|floatformat:'0' %}">{{ topic.avg_score|floatformat:"1" }}<span class="score-denominator">/10</span></span>
                 {% endif %}
             </td>
+            <td class="col-topic-count">{{ topic.bill_count }}</td>
         </tr>
         {% empty %}
         <tr><td colspan="3" class="empty-cell">No topics found.</td></tr>

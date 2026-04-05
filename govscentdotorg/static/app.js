@@ -53,12 +53,12 @@ function initScoreChart() {
             },
             scales: {
                 y: {
-                    min: 0,
+                    min: 7,
                     max: 10,
                     ticks: {
                         font: { family: 'Hanken Grotesk', size: 12 },
                         color: '#8A8F9E',
-                        stepSize: 2
+                        stepSize: 0.5
                     },
                     grid: { color: '#E2DFD8' }
                 },
