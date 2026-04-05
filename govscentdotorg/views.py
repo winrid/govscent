@@ -55,32 +55,25 @@ def index(request):
     sort = request.GET.get('sort', '-date').strip()
     page = request.GET.get('page', 1)
 
-    # Build a cache key from the filter params (page excluded — paginator handles that)
-    cache_key = f'index_bills:{congress}:{bill_type}:{score_min}:{score_max}:{sort}'
-    qs = cache.get(cache_key)
-    if qs is None:
-        qs = Bill.objects.filter(gov__exact="USA", last_analyzed_at__isnull=False)
+    qs = Bill.objects.filter(gov__exact="USA", last_analyzed_at__isnull=False)
 
-        if congress:
-            qs = qs.filter(gov_id__startswith=congress)
-        if bill_type:
-            qs = qs.filter(type__iexact=bill_type)
-        if score_min:
-            try:
-                qs = qs.filter(on_topic_ranking__gte=int(score_min))
-            except ValueError:
-                pass
-        if score_max:
-            try:
-                qs = qs.filter(on_topic_ranking__lte=int(score_max))
-            except ValueError:
-                pass
+    if congress:
+        qs = qs.filter(gov_id__startswith=congress)
+    if bill_type:
+        qs = qs.filter(type__iexact=bill_type)
+    if score_min:
+        try:
+            qs = qs.filter(on_topic_ranking__gte=int(score_min))
+        except ValueError:
+            pass
+    if score_max:
+        try:
+            qs = qs.filter(on_topic_ranking__lte=int(score_max))
+        except ValueError:
+            pass
 
-        order = ALLOWED_SORTS.get(sort, '-date')
-        qs = qs.order_by(order)
-        cache.set(cache_key, qs, 21600)  # 6 hours
-
-    qs = qs.prefetch_related('topics')
+    order = ALLOWED_SORTS.get(sort, '-date')
+    qs = qs.order_by(order).prefetch_related('topics')
 
     paginator = Paginator(qs, 24)
     paginated_bills = paginator.get_page(page)
