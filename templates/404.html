@@ -1,7 +1,13 @@
 {% extends "base.html" %}
-
-{% block title %}Not Found{% endblock %}
+{% block title %}Page Not Found | govscent.org{% endblock %}
 
 {% block content %}
-    The requested page was not found.
+<div class="error-page">
+    <h1>404</h1>
+    <p>The page you're looking for doesn't exist.</p>
+    <div class="error-links">
+        <a href="/" class="btn-primary">Browse Bills</a>
+        <a href="{% url 'topic_search_page' %}" class="btn-secondary">Explore Topics</a>
+    </div>
+</div>
 {% endblock %}

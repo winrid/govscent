@@ -1,47 +1,73 @@
 {% extends "base.html" %}
-{% block title %}Search Topics | govscent.org{% endblock %}
+{% load bill_tags %}
+
+{% block nav_topics_active %}is-active{% endblock %}
+{% block title %}{% if searched %}Topics: {{ searched }}{% else %}Explore Topics{% endif %} | govscent.org{% endblock %}
 
 {% block content %}
-    <div class="topic-search-box">
-        <p class="search-help">
-            Topic and themes have been extracted from all bills. Search for bills by topic here.
-        </p>
-        <form id="form" role="search" method=GET>
-            <input type="search" id="query" name="searched" placeholder="Search topics..."
-                   aria-label="Search through site content" value="{{ searched | default_if_none:'' }}"/>
-            <button class="text-search-button" type="submit">Search</button>
-        </form>
-        <div class="search-result">
-            {% if searched %}
-                <h3>Topic{{ paginated_data | pluralize:",s" }} for: {{ searched }}</h3>
-            {% else %}
-                <h3>All Topics</h3>
-            {% endif %}
-            <ul>
-                {% for topic in paginated_data %}
-                    <li>
-                        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a>
-                        ({{ topic.get_bill_count_cached }} related bill{{ topic.get_bill_count_cached |pluralize:",s" }})
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-        <div class="pagination">
-            <span class="step-links">
-                {% if paginated_data.has_previous %}
-                    <a href="?page=1&searched={{ searched | default_if_none:'' }}">&laquo; first</a>
-                    <a href="?page={{ paginated_data.previous_page_number }}&searched={{ searched | default_if_none:'' }}">previous</a>
-                {% endif %}
+<section class="topic-explore-header">
+    <h1>Explore Topics</h1>
+    <p>Every bill is tagged with AI-extracted topics. Browse them here or search for something specific.</p>
 
-                <span class="current">
-                    Page {{ paginated_data.number }} of {{ paginated_data.paginator.num_pages }}.
+    <form method="GET" class="topic-search-form">
+        <div class="search-input-wrapper">
+            <input type="search" name="searched" placeholder="Search topics..."
+                   value="{{ searched|default_if_none:'' }}" aria-label="Search topics">
+            <button type="submit" class="search-button">Search</button>
+        </div>
+    </form>
+</section>
+
+{% if popular_topics and not searched %}
+<section class="popular-topics-section">
+    <h2 class="section-heading">Most Popular Topics</h2>
+    <div class="topic-card-grid">
+        {% for topic in popular_topics %}
+        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-card">
+            <h3 class="topic-card-name">{{ topic.name }}</h3>
+            <div class="topic-card-stats">
+                <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
+                {% if topic.avg_score %}
+                <span class="topic-card-score {% score_color topic.avg_score|floatformat:'0' %}">
+                    Avg: {{ topic.avg_score|floatformat:"1" }}/10
                 </span>
-
-                {% if paginated_data.has_next %}
-                    <a href="?page={{ paginated_data.next_page_number }}&searched={{ searched | default_if_none:'' }}">next</a>
-                    <a href="?page={{ paginated_data.paginator.num_pages }}&searched={{ searched | default_if_none:'' }}">last &raquo;</a>
                 {% endif %}
-            </span>
-        </div>
+            </div>
+        </a>
+        {% endfor %}
     </div>
+</section>
+{% endif %}
+
+<section class="topic-results-section">
+    {% if searched %}
+    <h2 class="section-heading">Results for "{{ searched }}"</h2>
+    {% elif not popular_topics %}
+    <h2 class="section-heading">All Topics</h2>
+    {% else %}
+    <h2 class="section-heading">All Topics</h2>
+    {% endif %}
+
+    <div class="topic-card-grid">
+        {% for topic in paginated_data %}
+        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-card">
+            <h3 class="topic-card-name">{{ topic.name }}</h3>
+            <div class="topic-card-stats">
+                <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
+                {% if topic.avg_score %}
+                <span class="topic-card-score {% score_color topic.avg_score|floatformat:'0' %}">
+                    Avg: {{ topic.avg_score|floatformat:"1" }}/10
+                </span>
+                {% endif %}
+            </div>
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <p>No topics found{% if searched %} for "{{ searched }}"{% endif %}.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% include "partials/pagination.html" with page_obj=paginated_data %}
+</section>
 {% endblock %}

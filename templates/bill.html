@@ -1,56 +1,115 @@
 {% extends "base.html" %}
+{% load static bill_tags humanize %}
 
-{% block title %}{{ bill.gov_id }} | govscent.org{% endblock %}
+{% block title %}{{ bill.title|truncatewords:10 }} | govscent.org{% endblock %}
+{% block meta_description %}{{ bill.text_summary|default:bill.title|truncatewords:25 }}{% endblock %}
 
 {% block content %}
-    <div class="bill-details">
-        <div class="score">
-            {% if bill.last_analyzed_at %}
-                {% if bill.on_topic_ranking %}
-                    <h3>Bill Topic Score</h3>
-                    {{ bill.on_topic_ranking }}/10 on topic rating.
-                    {% if bill.on_topic_reasoning %}
-                        <div class="reasoning">
-                            {{ bill.on_topic_reasoning }}
-                        </div>
-                    {% endif %}
-                {% endif %}
-            {% else %}
-                <h5>Pending Analysis.</h5>
-            {% endif %}
-        </div>
-        <div class="topics">
-            {% if bill.topics and bill.topics.all.first is not None %}
-                <h3>Bill Topics</h3>
-                <ol>
-                    {% for topic in bill.topics.all %}
-                        <li>
-                            <a href="{% url 'topic_page_with_slug' topic.id topic.name %}">{{ topic.name }}</a>
-                            {% if topic.get_bill_count_cached > 1 %}
-                                ({{ topic.get_bill_count_cached | add:'-1' }} other bills)
-                            {% endif %}
-                        </li>
-                    {% endfor %}
-                </ol>
-            {% endif %}
-        </div>
-        {% if bill.text_summary %}
-            <div class="summary">
-                <h3>Summary</h3>
-                {{ bill.text_summary }}
-            </div>
-        {% endif %}
+<div class="bill-meta-bar">
+    <div class="bill-meta-bar-inner">
+        <span class="bill-type-badge badge-{{ bill.type|lower }}">{% bill_type_full bill.gov_id %}</span>
+        <span class="bill-meta-item">{% congress_ordinal bill.gov_id %} Congress</span>
+        <span class="bill-meta-item">{{ bill.type }} {% bill_number bill.gov_id %}</span>
+        <span class="bill-meta-item">{% bill_status_code bill.gov_id %}</span>
+        <span class="bill-meta-item">{{ bill.date|date:"F j, Y" }}</span>
+        <a href="{% congress_gov_url bill.gov_id %}" target="_blank" rel="noopener" class="bill-meta-link">
+            View on Congress.gov &#8599;
+        </a>
     </div>
-    <div class="fastcomments-collab-chat">
-        <div id="fastcomments-collab-chat-widget" class="bill-content">
-            {{ bill_html | safe }}
-        </div>
-    </div>
-    <script src="https://cdn.fastcomments.com/js/embed-collab-chat.min.js"></script>
-    <script>
-        FastCommentsCollabChat(document.getElementById('fastcomments-collab-chat-widget'), {
-            tenantId: 'pZTrBhCJlsQB'
-        });
-    </script>
+</div>
 
+<div class="bill-layout">
+    <div class="bill-main">
+        <h1 class="bill-title">{{ bill.title }}</h1>
+
+        {% if bill.text_summary %}
+        <div class="bill-summary-box">
+            <h2 class="bill-summary-heading">AI Summary</h2>
+            <p>{{ bill.text_summary }}</p>
+        </div>
+        {% endif %}
+
+        <div class="bill-text-section">
+            <h2 class="section-heading">Full Text</h2>
+            <div id="fastcomments-collab-chat-widget" class="bill-text-content">
+                {{ bill_html|safe }}
+            </div>
+        </div>
+
+        <script src="https://cdn.fastcomments.com/js/embed-collab-chat.min.js"></script>
+        <script>
+            FastCommentsCollabChat(document.getElementById('fastcomments-collab-chat-widget'), {
+                tenantId: 'pZTrBhCJlsQB'
+            });
+        </script>
+    </div>
+
+    <aside class="bill-sidebar">
+        {% if bill.last_analyzed_at %}
+        <div class="score-card">
+            {% if bill.on_topic_ranking is not None %}
+            <div class="score-gauge {% score_color bill.on_topic_ranking %}">
+                <span class="score-gauge-number">{{ bill.on_topic_ranking }}</span>
+                <span class="score-gauge-label">/10 On Topic</span>
+            </div>
+            {% if bill.on_topic_reasoning %}
+            <p class="score-reasoning">{{ bill.on_topic_reasoning }}</p>
+            {% endif %}
+            {% endif %}
+            <div class="score-meta">Analyzed {{ bill.last_analyzed_at|date:"M j, Y" }}</div>
+        </div>
+        {% else %}
+        <div class="score-card score-card-pending">
+            <p>Pending Analysis</p>
+        </div>
+        {% endif %}
+
+        {% if bill.topics.all %}
+        <div class="sidebar-section">
+            <h3 class="sidebar-heading">Topics</h3>
+            <div class="topic-chips">
+                {% for topic in bill.topics.all %}
+                <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-chip">
+                    {{ topic.name }}
+                    {% if topic.get_bill_count_cached > 1 %}
+                    <span class="topic-chip-count">{{ topic.get_bill_count_cached }}</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if related_bills %}
+        <div class="sidebar-section">
+            <h3 class="sidebar-heading">Related Bills</h3>
+            <div class="related-bills-list">
+                {% for rb in related_bills %}
+                <a href="{% url 'bill_page' rb.gov rb.gov_id %}" class="related-bill-item">
+                    <span class="bill-type-badge-sm badge-{{ rb.type|lower }}">{{ rb.type }}</span>
+                    <span class="related-bill-title">{{ rb.title|truncatewords:12 }}</span>
+                    {% if rb.on_topic_ranking is not None %}
+                    <span class="related-bill-score {% score_color rb.on_topic_ranking %}">{{ rb.on_topic_ranking }}/10</span>
+                    {% endif %}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if other_revisions %}
+        <div class="sidebar-section">
+            <h3 class="sidebar-heading">Other Versions</h3>
+            <div class="revision-list">
+                {% for rev in other_revisions %}
+                <a href="{% url 'bill_page' rev.gov rev.gov_id %}" class="revision-item">
+                    <span class="revision-id">{{ rev.gov_id }}</span>
+                    <span class="revision-date">{{ rev.date|date:"M j, Y" }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </aside>
+</div>
 {% endblock %}

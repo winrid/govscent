@@ -1,17 +1,89 @@
 {% extends "base.html" %}
-{% block title %}{{ bill_topic }} | govscent.org{% endblock %}
+{% load static bill_tags humanize %}
+
+{% block nav_topics_active %}is-active{% endblock %}
+{% block title %}{{ bill_topic.name }} | govscent.org{% endblock %}
+{% block meta_description %}Bills tagged with the topic "{{ bill_topic.name }}" — browse and explore on govscent.org{% endblock %}
 
 {% block content %}
-    <div class="bill-lists">
-        <div class="topic">
-            <h3>Bills with Topic : {{bill_topic}}</h3>
+<section class="topic-header">
+    <h1 class="topic-title">{{ bill_topic.name }}</h1>
+
+    {% if topic_stats %}
+    <div class="topic-stats-row">
+        <div class="stat-card">
+            <span class="stat-number">{{ topic_stats.total_count }}</span>
+            <span class="stat-label">Bills</span>
         </div>
-        <div class="bill-links">
-            <ol>
-                {% for bill in bills %}
-                    <li><a href="{% url 'bill_page' bill.gov bill.gov_id %}">({{ bill.gov_id }}) {{ bill.title }}</a></li>
-                {% endfor %}
-            </ol>
+        {% if topic_stats.avg_score %}
+        <div class="stat-card">
+            <span class="stat-number {% score_color topic_stats.avg_score|floatformat:'0' %}">{{ topic_stats.avg_score|floatformat:"1" }}</span>
+            <span class="stat-label">Avg Score</span>
         </div>
+        {% endif %}
+        {% if topic_stats.total_count > 0 %}
+        <div class="score-distribution">
+            <div class="score-dist-bar">
+                {% widthratio topic_stats.high_count topic_stats.total_count 100 as high_pct %}
+                {% widthratio topic_stats.mid_count topic_stats.total_count 100 as mid_pct %}
+                {% widthratio topic_stats.low_count topic_stats.total_count 100 as low_pct %}
+                <div class="score-dist-segment score-high" style="width: {{ high_pct }}%"></div>
+                <div class="score-dist-segment score-mid" style="width: {{ mid_pct }}%"></div>
+                <div class="score-dist-segment score-low" style="width: {{ low_pct }}%"></div>
+            </div>
+            <div class="score-dist-legend">
+                <span class="legend-item score-high">8-10: {{ topic_stats.high_count }}</span>
+                <span class="legend-item score-mid">4-7: {{ topic_stats.mid_count }}</span>
+                <span class="legend-item score-low">0-3: {{ topic_stats.low_count }}</span>
+            </div>
+        </div>
+        {% endif %}
     </div>
+    {% endif %}
+</section>
+
+<section class="topic-bills">
+    <div class="sort-bar">
+        <form method="GET">
+            <label for="sort">Sort by:</label>
+            <select name="sort" id="sort" onchange="this.form.submit()">
+                <option value="-date" {% if current_sort == '-date' %}selected{% endif %}>Newest</option>
+                <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Oldest</option>
+                <option value="-score" {% if current_sort == '-score' %}selected{% endif %}>Highest Score</option>
+                <option value="score" {% if current_sort == 'score' %}selected{% endif %}>Lowest Score</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="bill-list">
+        {% for bill in paginated_bills %}
+        <a href="{% url 'bill_page' bill.gov bill.gov_id %}" class="bill-list-item">
+            <div class="bill-list-item-left">
+                <span class="bill-type-badge badge-{{ bill.type|lower }}">{{ bill.type }}</span>
+                <div class="bill-list-item-content">
+                    <h3 class="bill-list-item-title">{{ bill.title }}</h3>
+                    {% if bill.text_summary %}
+                    <p class="bill-list-item-summary">{{ bill.text_summary|truncatewords:25 }}</p>
+                    {% endif %}
+                    <div class="bill-list-item-meta">
+                        <span>{{ bill.gov_id }}</span>
+                        <span>{{ bill.date|date:"M j, Y" }}</span>
+                    </div>
+                </div>
+            </div>
+            {% if bill.on_topic_ranking is not None %}
+            <div class="bill-list-item-score {% score_color bill.on_topic_ranking %}">
+                {{ bill.on_topic_ranking }}<span class="score-denominator">/10</span>
+            </div>
+            {% endif %}
+        </a>
+        {% empty %}
+        <div class="empty-state">
+            <p>No bills found for this topic.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% include "partials/pagination.html" with page_obj=paginated_bills %}
+</section>
 {% endblock %}

@@ -1,55 +1,45 @@
 {% extends "base.html" %}
-{% load static humanize bill_tags %}
+{% load static bill_tags humanize %}
 
-{% block nav_home_active %}is-active{% endblock %}
-{% block title %}govscent.org &mdash; AI Analysis of US Congressional Bills{% endblock %}
+{% block title %}{{ congress_number }}th Congress | govscent.org{% endblock %}
+{% block meta_description %}Browse all analyzed bills from the {{ congress_number }}th Congress on govscent.org{% endblock %}
 
 {% block content %}
-<section class="hero">
-    <h1 class="hero-title">Every US Congressional Bill, Analyzed</h1>
-    <p class="hero-subtitle">Topics extracted, bills summarized, and ranked on staying on topic.</p>
-    {% if stats %}
-    <div class="hero-stats">
+<section class="congress-header">
+    <h1>{{ congress_number }}th Congress</h1>
+    {% if date_range.earliest and date_range.latest %}
+    <p class="congress-dates">{{ date_range.earliest|date:"Y" }} &ndash; {{ date_range.latest|date:"Y" }}</p>
+    {% endif %}
+
+    <div class="congress-stats-row">
         <div class="stat-card">
-            <span class="stat-number">{{ stats.count_bills|intcomma }}</span>
-            <span class="stat-label">Bills Tracked</span>
+            <span class="stat-number">{{ congress_stats.total|intcomma }}</span>
+            <span class="stat-label">Total Bills</span>
         </div>
         <div class="stat-card">
-            <span class="stat-number">{{ stats.count_bills_analyzed|intcomma }}</span>
+            <span class="stat-number">{{ congress_stats.analyzed|intcomma }}</span>
             <span class="stat-label">Analyzed</span>
         </div>
+        {% if congress_stats.avg_score %}
+        <div class="stat-card">
+            <span class="stat-number">{{ congress_stats.avg_score|floatformat:"1" }}</span>
+            <span class="stat-label">Avg Score</span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if congress_stats.type_counts %}
+    <div class="congress-type-breakdown">
+        {% for tc in congress_stats.type_counts %}
+        <span class="type-count-badge badge-{{ tc.type|lower }}">{{ tc.type }}: {{ tc.count|intcomma }}</span>
+        {% endfor %}
     </div>
     {% endif %}
 </section>
 
-{% if trending_topics %}
-<section class="trending-section">
-    <h2 class="section-heading">Trending Topics</h2>
-    <div class="trending-topics-scroll">
-        {% for topic in trending_topics %}
-        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-chip">
-            {{ topic.name }}
-            <span class="topic-chip-count">{{ topic.recent_count }}</span>
-        </a>
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
-
 <section class="bills-section">
     <div class="filter-bar">
         <form method="GET" action="" class="filter-form" id="filter-form">
-            <div class="filter-group">
-                <label for="congress-select">Congress</label>
-                <select name="congress" id="congress-select">
-                    <option value="">All Sessions</option>
-                    {% for session in congress_sessions %}
-                    <option value="{{ session }}" {% if current_filters.congress == session|stringformat:"d" %}selected{% endif %}>
-                        {{ session }}th Congress
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
             <div class="filter-group">
                 <label for="type-select">Type</label>
                 <select name="type" id="type-select">
@@ -59,12 +49,6 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="filter-group filter-group-score">
-                <label>Score</label>
-                <input type="number" name="score_min" placeholder="Min" min="0" max="10" value="{{ current_filters.score_min }}">
-                <span class="filter-separator">&ndash;</span>
-                <input type="number" name="score_max" placeholder="Max" min="0" max="10" value="{{ current_filters.score_max }}">
-            </div>
             <div class="filter-group">
                 <label for="sort-select">Sort</label>
                 <select name="sort" id="sort-select">
@@ -72,7 +56,6 @@
                     <option value="date" {% if current_filters.sort == 'date' %}selected{% endif %}>Oldest First</option>
                     <option value="-score" {% if current_filters.sort == '-score' %}selected{% endif %}>Highest Score</option>
                     <option value="score" {% if current_filters.sort == 'score' %}selected{% endif %}>Lowest Score</option>
-                    <option value="-analyzed" {% if current_filters.sort == '-analyzed' %}selected{% endif %}>Recently Analyzed</option>
                 </select>
             </div>
             <button type="submit" class="filter-apply">Apply</button>
@@ -84,7 +67,6 @@
         <a href="{% url 'bill_page' bill.gov bill.gov_id %}" class="bill-card">
             <div class="bill-card-header">
                 <span class="bill-type-badge badge-{{ bill.type|lower }}">{{ bill.type }}</span>
-                <span class="bill-congress">{% congress_ordinal bill.gov_id %} Congress</span>
                 <span class="bill-date">{{ bill.date|date:"M j, Y" }}</span>
             </div>
             <h3 class="bill-card-title">{{ bill.title }}</h3>
@@ -115,23 +97,11 @@
         {% empty %}
         <div class="empty-state">
             <h3>No bills match your filters</h3>
-            <p>Try adjusting your filters or <a href="/">clear all filters</a>.</p>
+            <p>Try adjusting your filters.</p>
         </div>
         {% endfor %}
     </div>
 
     {% include "partials/pagination.html" with page_obj=paginated_bills %}
 </section>
-
-{% if stats %}
-<section class="chart-section">
-    <h2 class="section-heading">On-Topic Score Over Time</h2>
-    <p class="section-subtitle">Monthly average of how well bills stay on their stated topic</p>
-    <div class="chart-container">
-        <script src="{% static 'chart.js' %}"></script>
-        <script type="application/json" id="chart-data">{{ stats.average_score_by_month_json|safe }}</script>
-        <canvas id="score-chart"></canvas>
-    </div>
-</section>
-{% endif %}
 {% endblock %}

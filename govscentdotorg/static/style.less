@@ -1,195 +1,1596 @@
-@color-grey-text-back: #f5f3f3;
-@width: 1500px;
+// ============================================
+// Design Tokens
+// ============================================
+
+@navy: #1B2A4A;
+@brick: #C4453C;
+@bg: #FAFAF7;
+@surface: #FFFFFF;
+@border: #E2DFD8;
+@border-light: #F0EDE8;
+
+@text-primary: #1B2A4A;
+@text-secondary: #5C6478;
+@text-tertiary: #8A8F9E;
+
+@score-high: #2D7D46;
+@score-mid: #D4920B;
+@score-low: #C4453C;
+
+@badge-hr: #3B6FB5;
+@badge-s: #7B4BB3;
+@badge-hjres: #C4453C;
+@badge-sjres: #C4453C;
+@badge-hres: #2D7D46;
+@badge-sres: #2D7D46;
+@badge-hconres: #D4920B;
+@badge-sconres: #D4920B;
+
+@font-display: 'Space Grotesk', sans-serif;
+@font-body: 'Hanken Grotesk', sans-serif;
+
+@max-width: 1280px;
+@bp-sm: 640px;
+@bp-md: 768px;
+@bp-lg: 1024px;
+
+@radius-sm: 4px;
+@radius-md: 8px;
+@radius-lg: 12px;
+
+// ============================================
+// Reset & Base
+// ============================================
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 html, body {
-  height: 100%; // for footer
-  margin: 0;
-  padding: 0;
-  font-family: 'Hanken Grotesk', sans-serif;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: @font-body;
+    color: @text-primary;
+    background: @bg;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-// for footer
 body {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
-.font-space {
-  font-family: 'Space Grotesk', sans-serif;
+a {
+    color: @navy;
+    text-decoration: none;
+    &:hover {
+        color: @brick;
+    }
 }
 
-.text-center {
-  text-align: center;
+img {
+    max-width: 100%;
+    height: auto;
 }
 
-.nav {
+h1, h2, h3, h4 {
+    font-family: @font-display;
+    margin: 0 0 0.5em;
+    line-height: 1.2;
+}
 
-  .ai-warning {
-    padding: 15px 0 0 0;
-    letter-spacing: 0.5px;
+h1 { font-size: 32px; font-weight: 700; }
+h2 { font-size: 24px; font-weight: 700; }
+h3 { font-size: 18px; font-weight: 600; }
+
+// ============================================
+// Layout
+// ============================================
+
+.container {
+    max-width: @max-width;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+// ============================================
+// AI Banner
+// ============================================
+
+.ai-banner {
+    background: #FEF3C7;
+    color: #92400E;
+    font-size: 13px;
     text-align: center;
-    .font-space();
-  }
+    padding: 8px 16px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
 
-  .nav-content {
+    .ai-banner-inner {
+        max-width: @max-width;
+        margin: 0 auto;
+    }
+
+    .ai-banner-icon {
+        margin-right: 6px;
+    }
+}
+
+// ============================================
+// Navigation
+// ============================================
+
+.site-nav {
+    background: @surface;
+    border-bottom: 1px solid @border;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+
+    .site-nav-inner {
+        max-width: @max-width;
+        margin: 0 auto;
+        padding: 0 24px;
+        display: flex;
+        align-items: center;
+        height: 64px;
+        gap: 32px;
+    }
+
+    .site-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: @navy;
+        flex-shrink: 0;
+
+        &-logo {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+        }
+
+        &-text {
+            font-family: @font-display;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+    }
+
+    .site-nav-links {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-left: auto;
+
+        .nav-link {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            color: @text-secondary;
+            text-decoration: none;
+            border-radius: @radius-sm;
+            transition: color 0.15s, background 0.15s;
+
+            &:hover {
+                color: @navy;
+                background: fade(@navy, 4%);
+            }
+
+            &.is-active {
+                color: @navy;
+                font-weight: 600;
+                background: fade(@navy, 6%);
+            }
+        }
+    }
+}
+
+@media (max-width: @bp-sm) {
+    .site-nav .site-nav-inner {
+        padding: 0 16px;
+        gap: 16px;
+    }
+    .site-nav .site-brand-text {
+        display: none;
+    }
+    .site-nav .site-nav-links .nav-link {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+// ============================================
+// Main Content
+// ============================================
+
+.site-content {
+    flex: 1 0 auto;
+    width: 100%;
+    max-width: @max-width;
+    margin: 0 auto;
+    padding: 32px 24px;
+
+    @media (max-width: @bp-sm) {
+        padding: 20px 16px;
+    }
+}
+
+// ============================================
+// Hero Section
+// ============================================
+
+.hero {
+    text-align: center;
+    padding: 48px 0 40px;
+
+    .hero-title {
+        font-size: 40px;
+        font-weight: 700;
+        color: @navy;
+        margin-bottom: 12px;
+        line-height: 1.15;
+
+        @media (max-width: @bp-md) {
+            font-size: 28px;
+        }
+    }
+
+    .hero-subtitle {
+        font-size: 18px;
+        color: @text-secondary;
+        margin: 0 0 32px;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.5;
+
+        @media (max-width: @bp-md) {
+            font-size: 16px;
+        }
+    }
+}
+
+.hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 48px;
+    flex-wrap: wrap;
+
+    @media (max-width: @bp-sm) {
+        gap: 24px;
+    }
+}
+
+// ============================================
+// Stat Cards
+// ============================================
+
+.stat-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .stat-number {
+        font-family: @font-display;
+        font-size: 36px;
+        font-weight: 700;
+        color: @navy;
+        line-height: 1;
+
+        &.score-high { color: @score-high; }
+        &.score-mid { color: @score-mid; }
+        &.score-low { color: @score-low; }
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: @text-tertiary;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+        font-weight: 500;
+    }
+}
+
+// ============================================
+// Section Headings
+// ============================================
+
+.section-heading {
+    font-size: 20px;
+    font-weight: 700;
+    color: @navy;
+    margin-bottom: 16px;
+}
+
+.section-subtitle {
+    font-size: 15px;
+    color: @text-secondary;
+    margin: -8px 0 24px;
+}
+
+// ============================================
+// Trending Topics
+// ============================================
+
+.trending-section {
+    margin-bottom: 32px;
+}
+
+.trending-topics-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+        height: 4px;
+    }
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    &::-webkit-scrollbar-thumb {
+        background: @border;
+        border-radius: 2px;
+    }
+}
+
+// ============================================
+// Topic Chips & Pills
+// ============================================
+
+.topic-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 14px;
+    background: fade(@navy, 6%);
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    color: @text-primary;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background 0.15s;
+
+    &:hover {
+        background: fade(@navy, 12%);
+        color: @navy;
+    }
+
+    .topic-chip-count {
+        background: fade(@navy, 10%);
+        border-radius: 10px;
+        padding: 1px 7px;
+        font-size: 11px;
+        margin-left: 8px;
+        font-weight: 600;
+    }
+}
+
+.topic-pill {
+    display: inline-block;
+    padding: 2px 10px;
+    background: fade(@navy, 5%);
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 500;
+    color: @text-secondary;
+    white-space: nowrap;
+}
+
+.topic-pill-more {
+    background: fade(@navy, 8%);
+    color: @text-tertiary;
+}
+
+.topic-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+// ============================================
+// Filter Bar
+// ============================================
+
+.filter-bar {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+}
+
+.filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: @text-tertiary;
+    }
+
+    select, input[type="number"] {
+        font-family: @font-body;
+        font-size: 14px;
+        padding: 8px 12px;
+        border: 1px solid @border;
+        border-radius: @radius-sm;
+        background: @surface;
+        color: @text-primary;
+        min-width: 140px;
+        appearance: auto;
+
+        &:focus {
+            outline: none;
+            border-color: @navy;
+            box-shadow: 0 0 0 2px fade(@navy, 10%);
+        }
+    }
+}
+
+.filter-group-score {
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 6px;
+
+    label {
+        align-self: center;
+        margin-bottom: 6px;
+    }
+
+    input[type="number"] {
+        width: 70px;
+        min-width: auto;
+    }
+
+    .filter-separator {
+        color: @text-tertiary;
+        margin-bottom: 8px;
+    }
+}
+
+.filter-apply {
+    font-family: @font-body;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 8px 20px;
+    border: 1px solid @navy;
+    border-radius: @radius-sm;
+    background: @navy;
+    color: @surface;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: darken(@navy, 8%);
+    }
+}
+
+@media (max-width: @bp-md) {
+    .filter-form {
+        gap: 12px;
+    }
+    .filter-group select, .filter-group input[type="number"] {
+        min-width: 100px;
+    }
+}
+
+@media (max-width: @bp-sm) {
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-group select {
+        width: 100%;
+        min-width: auto;
+    }
+    .filter-group-score {
+        flex-direction: row;
+    }
+}
+
+// ============================================
+// Bill Grid
+// ============================================
+
+.bill-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+
+    @media (max-width: @bp-lg) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: @bp-sm) {
+        grid-template-columns: 1fr;
+    }
+}
+
+// ============================================
+// Bill Card
+// ============================================
+
+.bill-card {
+    display: flex;
+    flex-direction: column;
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 20px;
+    text-decoration: none;
+    color: @text-primary;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+        border-color: fade(@navy, 30%);
+        box-shadow: 0 2px 12px fade(@navy, 8%);
+        color: @text-primary;
+    }
+}
+
+.bill-card-header {
     display: flex;
     align-items: center;
-    max-width: @width;
-    margin: 0 auto;
-    padding: 0 20px 20px 20px;
-
-    .logo, .title {
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    .logo {
-      img {
-        width: 64px;
-      }
-    }
-
-    .title {
-      margin-left: 10px;
-      font-size: 24px;
-      letter-spacing: 1px;
-      text-decoration: none;
-      color: #000;
-      .font-space();
-    }
-
-    .topic-search {
-      margin-left: auto; // will move to right w/ flex on parent container
-      padding-left: 10px; // for mobile
-    }
-  }
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
-.content {
-  flex: 1 0 auto;
-  margin: 0 auto;
-  width: 100%;
-  padding: 20px;
-  max-width: @width;
-  box-sizing: border-box;
+.bill-congress {
+    font-size: 12px;
+    color: @text-tertiary;
+    font-weight: 500;
+}
 
-  .stats {
-    .stats-heading {
-      h2 {
-        margin-bottom: 5px;
-      }
+.bill-date {
+    font-size: 12px;
+    color: @text-tertiary;
+    margin-left: auto;
+}
+
+.bill-card-title {
+    font-family: @font-display;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bill-card-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.score-bar {
+    flex: 1;
+    height: 6px;
+    background: @border-light;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.score-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+
+    &.score-high { background: @score-high; }
+    &.score-mid { background: @score-mid; }
+    &.score-low { background: @score-low; }
+}
+
+.score-number {
+    font-family: @font-display;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+
+    &.score-high { color: @score-high; }
+    &.score-mid { color: @score-mid; }
+    &.score-low { color: @score-low; }
+
+    .score-denominator {
+        font-size: 11px;
+        font-weight: 500;
+        color: @text-tertiary;
     }
-  }
+}
 
-  .bills {
-    .bill {
-      margin: 15px 0;
+.bill-card-summary {
+    font-size: 13px;
+    color: @text-secondary;
+    line-height: 1.5;
+    margin: 0 0 12px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bill-card-topics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: auto;
+}
+
+// ============================================
+// Bill Type Badges
+// ============================================
+
+.bill-type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: @radius-sm;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-family: @font-display;
+    white-space: nowrap;
+}
+
+.badge-hr { background: fade(@badge-hr, 12%); color: @badge-hr; }
+.badge-s { background: fade(@badge-s, 12%); color: @badge-s; }
+.badge-hjres { background: fade(@badge-hjres, 12%); color: @badge-hjres; }
+.badge-sjres { background: fade(@badge-sjres, 12%); color: @badge-sjres; }
+.badge-hres { background: fade(@badge-hres, 12%); color: @badge-hres; }
+.badge-sres { background: fade(@badge-sres, 12%); color: @badge-sres; }
+.badge-hconres { background: fade(@badge-hconres, 12%); color: @badge-hconres; }
+.badge-sconres { background: fade(@badge-sconres, 12%); color: @badge-sconres; }
+
+.bill-type-badge-sm {
+    .bill-type-badge();
+    font-size: 10px;
+    padding: 1px 6px;
+}
+
+// ============================================
+// Bill Detail Page
+// ============================================
+
+.bill-meta-bar {
+    background: fade(@navy, 3%);
+    border-bottom: 1px solid @border;
+    padding: 12px 0;
+    margin: -32px -24px 32px;
+    width: calc(100% + 48px);
+
+    @media (max-width: @bp-sm) {
+        margin: -20px -16px 24px;
+        width: calc(100% + 32px);
     }
-  }
+}
 
-  .bill-content {
+.bill-meta-bar-inner {
+    max-width: @max-width;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    @media (max-width: @bp-sm) {
+        padding: 0 16px;
+    }
+}
+
+.bill-meta-item {
+    font-size: 13px;
+    color: @text-secondary;
+
+    &::before {
+        content: '\00B7';
+        margin-right: 8px;
+        color: @border;
+    }
+}
+
+.bill-meta-link {
+    font-size: 13px;
+    font-weight: 600;
+    color: @navy;
+    margin-left: auto;
+    text-decoration: none;
+
+    &:hover {
+        color: @brick;
+    }
+}
+
+.bill-layout {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 48px;
+    align-items: start;
+
+    @media (max-width: @bp-lg) {
+        grid-template-columns: 1fr;
+        gap: 32px;
+    }
+}
+
+.bill-main {
+    min-width: 0;
+}
+
+.bill-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: @navy;
+    line-height: 1.25;
+    margin-bottom: 24px;
+
+    @media (max-width: @bp-md) {
+        font-size: 22px;
+    }
+}
+
+.bill-summary-box {
+    background: fade(@score-high, 4%);
+    border-left: 3px solid fade(@score-high, 40%);
+    padding: 20px 24px;
+    border-radius: 0 @radius-md @radius-md 0;
+    margin-bottom: 32px;
+
+    .bill-summary-heading {
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: @text-tertiary;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    p {
+        font-size: 15px;
+        line-height: 1.65;
+        color: @text-primary;
+        margin: 0;
+    }
+}
+
+.bill-text-section {
+    margin-top: 32px;
+}
+
+// Bill text content (from HTML generator)
+.bill-text-content {
     text-align: center;
-    letter-spacing: 1px;
+    letter-spacing: 0.3px;
+    line-height: 1.7;
+    font-size: 15px;
 
     & > div {
-      margin: 0 auto; // they have fixed width right now due to PDF parsing
+        margin: 0 auto;
+    }
+
+    h2, h3, h5 {
+        font-family: @font-display;
     }
 
     .separator {
-      max-width: 300px;
-      margin: 30px auto;
-      border-bottom: 1px solid #000;
+        max-width: 300px;
+        margin: 30px auto;
+        border-bottom: 1px solid @border;
     }
 
     .text-center {
-      text-align: center;
+        text-align: center;
     }
 
     .bullet {
-      max-width: 768px;
-      margin: 20px auto;
-      text-align: left;
+        max-width: 768px;
+        margin: 16px auto;
+        text-align: left;
 
-      &.num, &.quoted {
-        padding-left: 50px;
-      }
-    }
-  }
-
-  .topic-search-box {
-
-    .search-help {
-      text-align: center;
-    }
-
-    form {
-      margin: 20px auto;
-      text-align: center;
-
-      input {
-        min-width: 400px;
-        padding: 10px;
-      }
-
-      button {
-        display: block;
-        margin: 10px auto;
-        font-size: 16px;
-        padding: 5px 20px;
-      }
-
-      @media (max-width: 500px) {
-        input {
-          width: 100%;
-          min-width: auto;
+        &.num, &.quoted {
+            padding-left: 50px;
         }
-      }
     }
-  }
 }
 
-.footer {
-  flex-shrink: 0;
-  background: @color-grey-text-back;
+// ============================================
+// Bill Sidebar
+// ============================================
 
-  .footer-content {
+.bill-sidebar {
+    @media (max-width: @bp-lg) {
+        order: -1;
+    }
+}
+
+.score-card {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.score-card-pending {
+    color: @text-tertiary;
+    font-style: italic;
+}
+
+.score-gauge {
     display: flex;
-    max-width: @width;
-    margin: 0 auto;
-    height: 50px;
+    flex-direction: column;
     align-items: center;
+    margin-bottom: 16px;
+}
 
-    & > * {
-      width: 50%;
+.score-gauge-number {
+    font-family: @font-display;
+    font-size: 56px;
+    font-weight: 700;
+    line-height: 1;
+
+    .score-high & { color: @score-high; }
+    .score-mid & { color: @score-mid; }
+    .score-low & { color: @score-low; }
+}
+
+.score-gauge-label {
+    font-size: 14px;
+    color: @text-tertiary;
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+.score-reasoning {
+    font-size: 13px;
+    color: @text-secondary;
+    line-height: 1.55;
+    text-align: left;
+    margin: 16px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid @border-light;
+}
+
+.score-meta {
+    font-size: 11px;
+    color: @text-tertiary;
+    margin-top: 12px;
+}
+
+.sidebar-section {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.sidebar-heading {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: @text-tertiary;
+    margin-bottom: 12px;
+}
+
+// Related Bills
+.related-bills-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.related-bill-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: @radius-sm;
+    text-decoration: none;
+    color: @text-primary;
+    transition: background 0.15s;
+
+    &:hover {
+        background: fade(@navy, 4%);
+    }
+}
+
+.related-bill-title {
+    font-size: 13px;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.related-bill-score {
+    font-family: @font-display;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+
+    &.score-high { color: @score-high; }
+    &.score-mid { color: @score-mid; }
+    &.score-low { color: @score-low; }
+}
+
+// Revision List
+.revision-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.revision-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: @radius-sm;
+    text-decoration: none;
+    color: @text-primary;
+    font-size: 13px;
+    transition: background 0.15s;
+
+    &:hover {
+        background: fade(@navy, 4%);
+    }
+}
+
+.revision-id {
+    font-family: @font-display;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.revision-date {
+    color: @text-tertiary;
+    font-size: 12px;
+}
+
+// ============================================
+// Topic Page
+// ============================================
+
+.topic-header {
+    margin-bottom: 32px;
+}
+
+.topic-title {
+    font-size: 28px;
+    font-weight: 700;
+    color: @navy;
+    margin-bottom: 20px;
+}
+
+.topic-stats-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    flex-wrap: wrap;
+}
+
+.score-distribution {
+    flex: 1;
+    min-width: 200px;
+}
+
+.score-dist-bar {
+    display: flex;
+    height: 10px;
+    border-radius: 5px;
+    overflow: hidden;
+    background: @border-light;
+}
+
+.score-dist-segment {
+    transition: width 0.3s ease;
+
+    &.score-high { background: @score-high; }
+    &.score-mid { background: @score-mid; }
+    &.score-low { background: @score-low; }
+}
+
+.score-dist-legend {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 12px;
+    color: @text-tertiary;
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+
+        &::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        &.score-high::before { background: @score-high; }
+        &.score-mid::before { background: @score-mid; }
+        &.score-low::before { background: @score-low; }
+    }
+}
+
+// Sort Bar
+.sort-bar {
+    margin-bottom: 20px;
+
+    form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .links {
-      a {
-        margin-right: 5px;
-      }
+    label {
+        font-size: 13px;
+        font-weight: 500;
+        color: @text-tertiary;
     }
 
-    .sponsored-by {
-      text-align: right;
+    select {
+        font-family: @font-body;
+        font-size: 13px;
+        padding: 6px 10px;
+        border: 1px solid @border;
+        border-radius: @radius-sm;
+        background: @surface;
+        color: @text-primary;
+    }
+}
+
+// Bill List (for topic pages)
+.bill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.bill-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    text-decoration: none;
+    color: @text-primary;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+        border-color: fade(@navy, 25%);
+        box-shadow: 0 1px 6px fade(@navy, 6%);
     }
 
-    @media (max-width: @width) {
-      padding: 0 10px;
+    @media (max-width: @bp-sm) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+}
+
+.bill-list-item-left {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.bill-list-item-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.bill-list-item-title {
+    font-family: @font-display;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    line-height: 1.35;
+}
+
+.bill-list-item-summary {
+    font-size: 13px;
+    color: @text-secondary;
+    line-height: 1.5;
+    margin: 0 0 6px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.bill-list-item-meta {
+    font-size: 12px;
+    color: @text-tertiary;
+
+    span + span::before {
+        content: '\00B7';
+        margin: 0 6px;
+    }
+}
+
+.bill-list-item-score {
+    font-family: @font-display;
+    font-size: 18px;
+    font-weight: 700;
+    flex-shrink: 0;
+
+    &.score-high { color: @score-high; }
+    &.score-mid { color: @score-mid; }
+    &.score-low { color: @score-low; }
+
+    .score-denominator {
+        font-size: 13px;
+        font-weight: 500;
+        color: @text-tertiary;
+    }
+}
+
+// ============================================
+// Topic Search / Browse
+// ============================================
+
+.topic-explore-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    h1 {
+        margin-bottom: 8px;
     }
 
-    @media (max-width: 768px) {
-      padding: 10px;
-      align-items: flex-start;
-      flex-direction: column;
-      justify-content: space-between;
-
-      & > * {
-        width: 100%;
-      }
-
-      .sponsored-by {
-        text-align: inherit;
-      }
+    p {
+        color: @text-secondary;
+        font-size: 16px;
+        margin: 0 0 24px;
     }
-  }
+}
+
+.topic-search-form, .bill-search-form {
+    max-width: 560px;
+    margin: 0 auto;
+}
+
+.search-input-wrapper {
+    display: flex;
+    gap: 8px;
+
+    input[type="search"] {
+        flex: 1;
+        font-family: @font-body;
+        font-size: 15px;
+        padding: 12px 16px;
+        border: 1px solid @border;
+        border-radius: @radius-md;
+        background: @surface;
+        color: @text-primary;
+
+        &:focus {
+            outline: none;
+            border-color: @navy;
+            box-shadow: 0 0 0 3px fade(@navy, 10%);
+        }
+
+        &::placeholder {
+            color: @text-tertiary;
+        }
+    }
+
+    .search-button {
+        font-family: @font-body;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 12px 24px;
+        border: none;
+        border-radius: @radius-md;
+        background: @navy;
+        color: @surface;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+
+        &:hover {
+            background: darken(@navy, 8%);
+        }
+    }
+}
+
+// Topic Card Grid
+.topic-card-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+
+    @media (max-width: @bp-lg) {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    @media (max-width: @bp-md) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: @bp-sm) {
+        grid-template-columns: 1fr;
+    }
+}
+
+.topic-card {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 16px 20px;
+    text-decoration: none;
+    color: @text-primary;
+    transition: border-color 0.15s, box-shadow 0.15s;
+
+    &:hover {
+        border-color: fade(@navy, 30%);
+        box-shadow: 0 2px 8px fade(@navy, 6%);
+        color: @text-primary;
+    }
+}
+
+.topic-card-name {
+    font-family: @font-display;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.topic-card-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+}
+
+.topic-card-count {
+    color: @text-tertiary;
+}
+
+.topic-card-score {
+    font-family: @font-display;
+    font-weight: 600;
+    font-size: 12px;
+
+    &.score-high { color: @score-high; }
+    &.score-mid { color: @score-mid; }
+    &.score-low { color: @score-low; }
+}
+
+.popular-topics-section {
+    margin-bottom: 40px;
+}
+
+.topic-results-section {
+    margin-top: 32px;
+}
+
+// ============================================
+// Bill Search
+// ============================================
+
+.bill-search-header {
+    text-align: center;
+    margin-bottom: 32px;
+
+    h1 {
+        margin-bottom: 16px;
+    }
+}
+
+.search-results {
+    margin-top: 32px;
+}
+
+// ============================================
+// Congress Page
+// ============================================
+
+.congress-header {
+    margin-bottom: 32px;
+
+    h1 {
+        margin-bottom: 4px;
+    }
+}
+
+.congress-dates {
+    font-size: 16px;
+    color: @text-secondary;
+    margin: 0 0 24px;
+}
+
+.congress-stats-row {
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.congress-type-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.type-count-badge {
+    .bill-type-badge();
+    font-size: 12px;
+    padding: 4px 10px;
+}
+
+// ============================================
+// Chart
+// ============================================
+
+.chart-section {
+    margin-top: 48px;
+    padding-top: 32px;
+    border-top: 1px solid @border;
+}
+
+.chart-container {
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    padding: 24px;
+    height: 350px;
+
+    canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+}
+
+// ============================================
+// Pagination
+// ============================================
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-top: 32px;
+    padding-top: 24px;
+    flex-wrap: wrap;
+}
+
+.pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid @border;
+    border-radius: @radius-sm;
+    text-decoration: none;
+    color: @text-primary;
+    background: @surface;
+    transition: all 0.15s;
+
+    &:hover {
+        border-color: @navy;
+        color: @navy;
+        background: fade(@navy, 3%);
+    }
+}
+
+.pagination-info {
+    font-size: 14px;
+    color: @text-tertiary;
+    padding: 0 12px;
+}
+
+// ============================================
+// Empty State
+// ============================================
+
+.empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 48px 24px;
+    color: @text-secondary;
+
+    h3 {
+        color: @text-primary;
+        margin-bottom: 8px;
+    }
+
+    p {
+        font-size: 15px;
+    }
+
+    a {
+        color: @navy;
+        text-decoration: underline;
+    }
+}
+
+// ============================================
+// Error Page
+// ============================================
+
+.error-page {
+    text-align: center;
+    padding: 80px 24px;
+
+    h1 {
+        font-family: @font-display;
+        font-size: 96px;
+        font-weight: 700;
+        color: @border;
+        margin-bottom: 16px;
+        line-height: 1;
+    }
+
+    p {
+        font-size: 18px;
+        color: @text-secondary;
+        margin-bottom: 32px;
+    }
+}
+
+.error-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.btn-primary {
+    display: inline-block;
+    padding: 10px 24px;
+    background: @navy;
+    color: @surface;
+    border-radius: @radius-md;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    transition: background 0.15s;
+
+    &:hover {
+        background: darken(@navy, 8%);
+        color: @surface;
+    }
+}
+
+.btn-secondary {
+    display: inline-block;
+    padding: 10px 24px;
+    border: 1px solid @navy;
+    color: @navy;
+    border-radius: @radius-md;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    transition: all 0.15s;
+
+    &:hover {
+        background: fade(@navy, 4%);
+    }
+}
+
+// ============================================
+// Footer
+// ============================================
+
+.site-footer {
+    flex-shrink: 0;
+    background: @navy;
+    color: fade(@surface, 85%);
+    margin-top: 48px;
+}
+
+.site-footer-inner {
+    max-width: @max-width;
+    margin: 0 auto;
+    padding: 40px 24px;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 40px;
+
+    @media (max-width: @bp-md) {
+        grid-template-columns: 1fr;
+        gap: 24px;
+        padding: 32px 16px;
+    }
+}
+
+.footer-about {
+    .footer-brand {
+        font-family: @font-display;
+        font-size: 18px;
+        font-weight: 700;
+        color: @surface;
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0;
+        color: fade(@surface, 65%);
+    }
+}
+
+.footer-links {
+    h4 {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: fade(@surface, 50%);
+        margin-bottom: 12px;
+    }
+
+    a {
+        display: block;
+        font-size: 14px;
+        color: fade(@surface, 75%);
+        padding: 4px 0;
+        text-decoration: none;
+
+        &:hover {
+            color: @surface;
+        }
+    }
+}
+
+.footer-sponsor {
+    font-size: 13px;
+    color: fade(@surface, 50%);
+
+    a {
+        color: fade(@surface, 75%);
+        text-decoration: underline;
+
+        &:hover {
+            color: @surface;
+        }
+    }
+}
+
+// ============================================
+// Utility
+// ============================================
+
+.bills-section {
+    margin-top: 8px;
 }

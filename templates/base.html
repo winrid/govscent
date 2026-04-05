@@ -1,45 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta name="description" content="{% block meta_description %}AI analysis of every US Congressional bill. Topics extracted, bills summarized, and ranked on staying on topic.{% endblock %}">
     {% load static %}
+    {% load bill_tags %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500&family=Space+Grotesk:wght@500&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <link rel="shortcut icon" type="image/png" href="{% static 'logo_0.png' %}"/>
     <title>{% block title %}govscent.org{% endblock %}</title>
+    {% block head_extra %}{% endblock %}
 </head>
-
 <body>
-<div class="nav">
-    <div class="ai-warning">Disclaimer: Govscent is an automated AI experiment.</div>
-    <div class="nav-content">
-        {% block nav %}
-            <div class="logo"><img src="{% static 'logo_0.png' %}" alt="Govscent.org Logo"/></div>
-            <a class="title" href="/">Govscent.org</a>
-            <div class="topic-search">
-                <a href="/search/topic">Explore Topics</a>
+    <div class="ai-banner">
+        <div class="ai-banner-inner">
+            <span class="ai-banner-icon">&#9888;</span>
+            Automated AI analysis &mdash; not a substitute for reading the actual legislation
+        </div>
+    </div>
+
+    <nav class="site-nav">
+        <div class="site-nav-inner">
+            <a class="site-brand" href="/">
+                <img src="{% static 'logo_0.png' %}" alt="" class="site-brand-logo"/>
+                <span class="site-brand-text">Govscent</span>
+            </a>
+            <div class="site-nav-links">
+                <a href="/" class="nav-link {% block nav_home_active %}{% endblock %}">Bills</a>
+                <a href="{% url 'topic_search_page' %}" class="nav-link {% block nav_topics_active %}{% endblock %}">Topics</a>
+                <a href="{% url 'bill_search_page' %}" class="nav-link {% block nav_search_active %}{% endblock %}">Search</a>
             </div>
-        {% endblock %}
-    </div>
-</div>
-
-<div class="content">
-    {% block content %}{% endblock %}
-</div>
-
-<div class="footer">
-    <div class="footer-content">
-        <div class="links">
-            <a href="/api">API</a>
-            <a href="https://github.com/winrid/govscent">Source Code</a>
         </div>
-        <div class="sponsored-by">
-            Govscent is kept free by <a href="https://fastcomments.com" target="_blank">FastComments.com</a>
+    </nav>
+
+    <main class="site-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="site-footer-inner">
+            <div class="footer-about">
+                <span class="footer-brand">Govscent.org</span>
+                <p>AI-powered analysis of US Congressional bills. Every bill summarized, topics extracted, and scored on how well it stays on topic.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Resources</h4>
+                <a href="/api">API</a>
+                <a href="https://github.com/winrid/govscent">Source Code</a>
+                <a href="https://www.congress.gov" target="_blank" rel="noopener">Congress.gov</a>
+            </div>
+            <div class="footer-sponsor">
+                Kept free by <a href="https://fastcomments.com" target="_blank" rel="noopener">FastComments.com</a>
+            </div>
         </div>
-    </div>
-</div>
+    </footer>
+
+    <script src="{% static 'app.js' %}"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>
