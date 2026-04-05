@@ -1588,6 +1588,182 @@ h3 { font-size: 18px; font-weight: 600; }
 }
 
 // ============================================
+// Data Tables
+// ============================================
+
+.table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: @surface;
+    border: 1px solid @border;
+    border-radius: @radius-md;
+    overflow: hidden;
+    font-size: 14px;
+
+    thead {
+        background: fade(@navy, 4%);
+
+        th {
+            padding: 10px 16px;
+            text-align: left;
+            font-family: @font-display;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: @text-tertiary;
+            border-bottom: 1px solid @border;
+            white-space: nowrap;
+        }
+    }
+
+    tbody {
+        tr {
+            border-bottom: 1px solid @border-light;
+            transition: background 0.1s;
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        tr.clickable-row {
+            cursor: pointer;
+
+            &:hover {
+                background: fade(@navy, 3%);
+            }
+        }
+
+        td {
+            padding: 12px 16px;
+            vertical-align: top;
+        }
+    }
+}
+
+// Bill table columns
+.bill-table {
+    .col-type {
+        width: 60px;
+    }
+
+    .col-id {
+        width: 130px;
+    }
+
+    .col-title {
+        min-width: 250px;
+    }
+
+    .col-topics {
+        width: 200px;
+    }
+
+    .col-score {
+        width: 70px;
+        text-align: center;
+
+        th& { text-align: center; }
+    }
+
+    .col-date {
+        width: 110px;
+        white-space: nowrap;
+    }
+}
+
+.bill-id-text {
+    font-family: @font-display;
+    font-size: 12px;
+    font-weight: 600;
+    color: @text-secondary;
+    letter-spacing: 0.3px;
+}
+
+.bill-table-title {
+    display: block;
+    font-weight: 600;
+    color: @text-primary;
+    text-decoration: none;
+    line-height: 1.35;
+
+    .clickable-row:hover & {
+        color: @navy;
+    }
+}
+
+.bill-table-summary {
+    display: block;
+    font-size: 12px;
+    color: @text-tertiary;
+    line-height: 1.45;
+    margin-top: 3px;
+}
+
+// Topic table columns
+.topic-table {
+    .col-topic-name {
+        min-width: 200px;
+
+        a {
+            font-weight: 600;
+            color: @text-primary;
+            text-decoration: none;
+
+            .clickable-row:hover & {
+                color: @navy;
+            }
+        }
+    }
+
+    .col-topic-count {
+        width: 80px;
+        text-align: center;
+
+        th& { text-align: center; }
+    }
+
+    .col-topic-score {
+        width: 100px;
+        text-align: center;
+
+        th& { text-align: center; }
+    }
+}
+
+.empty-cell {
+    text-align: center;
+    color: @text-tertiary;
+    padding: 32px 16px;
+}
+
+// Responsive: stack on small screens
+@media (max-width: @bp-sm) {
+    .data-table {
+        font-size: 13px;
+
+        thead th, tbody td {
+            padding: 8px 10px;
+        }
+    }
+
+    .bill-table .col-topics,
+    .bill-table .col-id {
+        display: none;
+    }
+
+    .bill-table-summary {
+        display: none;
+    }
+}
+
+// ============================================
 // Utility
 // ============================================
 

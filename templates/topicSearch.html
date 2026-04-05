@@ -21,21 +21,7 @@
 {% if popular_topics and not searched %}
 <section class="popular-topics-section">
     <h2 class="section-heading">Most Popular Topics</h2>
-    <div class="topic-card-grid">
-        {% for topic in popular_topics %}
-        <a href="{% url 'topic_page' topic.id %}" class="topic-card">
-            <h3 class="topic-card-name">{{ topic.name }}</h3>
-            <div class="topic-card-stats">
-                <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
-                {% if topic.avg_score %}
-                <span class="topic-card-score {% score_color topic.avg_score|floatformat:'0' %}">
-                    Avg: {{ topic.avg_score|floatformat:"1" }}/10
-                </span>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
-    </div>
+    {% include "partials/topic_table.html" with topics=popular_topics %}
 </section>
 {% endif %}
 
@@ -48,25 +34,7 @@
     <h2 class="section-heading">All Topics</h2>
     {% endif %}
 
-    <div class="topic-card-grid">
-        {% for topic in paginated_data %}
-        <a href="{% url 'topic_page' topic.id %}" class="topic-card">
-            <h3 class="topic-card-name">{{ topic.name }}</h3>
-            <div class="topic-card-stats">
-                <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
-                {% if topic.avg_score %}
-                <span class="topic-card-score {% score_color topic.avg_score|floatformat:'0' %}">
-                    Avg: {{ topic.avg_score|floatformat:"1" }}/10
-                </span>
-                {% endif %}
-            </div>
-        </a>
-        {% empty %}
-        <div class="empty-state">
-            <p>No topics found{% if searched %} for "{{ searched }}"{% endif %}.</p>
-        </div>
-        {% endfor %}
-    </div>
+    {% include "partials/topic_table.html" with topics=paginated_data %}
 
     {% include "partials/pagination.html" with page_obj=paginated_data %}
 </section>

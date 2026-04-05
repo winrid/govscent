@@ -1,0 +1,47 @@
+{% load bill_tags humanize %}
+<div class="table-wrap">
+<table class="data-table bill-table">
+    <thead>
+        <tr>
+            <th class="col-type">Type</th>
+            <th class="col-id">ID</th>
+            <th class="col-title">Title</th>
+            <th class="col-topics">Topics</th>
+            <th class="col-score">Score</th>
+            <th class="col-date">Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bill in bills %}
+        <tr onclick="window.location='{% url 'bill_page' bill.gov bill.gov_id %}'" class="clickable-row">
+            <td class="col-type"><span class="bill-type-badge badge-{{ bill.type|lower }}">{{ bill.type }}</span></td>
+            <td class="col-id"><span class="bill-id-text">{{ bill.gov_id }}</span></td>
+            <td class="col-title">
+                <a href="{% url 'bill_page' bill.gov bill.gov_id %}" class="bill-table-title">{{ bill.title|truncatewords:20 }}</a>
+                {% if bill.text_summary %}
+                <span class="bill-table-summary">{{ bill.text_summary|truncatewords:18 }}</span>
+                {% endif %}
+            </td>
+            <td class="col-topics">
+                {% for topic in bill.topics.all|slice:":2" %}
+                <span class="topic-pill">{{ topic.name }}</span>
+                {% endfor %}
+                {% with remaining=bill.topics.all|length %}
+                {% if remaining > 2 %}
+                <span class="topic-pill topic-pill-more">+{{ remaining|add:"-2" }}</span>
+                {% endif %}
+                {% endwith %}
+            </td>
+            <td class="col-score">
+                {% if bill.on_topic_ranking is not None %}
+                <span class="score-number {% score_color bill.on_topic_ranking %}">{{ bill.on_topic_ranking }}<span class="score-denominator">/10</span></span>
+                {% endif %}
+            </td>
+            <td class="col-date">{{ bill.date|date:"M j, Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-cell">No bills found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>

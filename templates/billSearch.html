@@ -26,41 +26,7 @@
         {% endif %}
     </h2>
 
-    <div class="bill-grid">
-        {% for bill in paginated_bills %}
-        <a href="{% url 'bill_page' bill.gov bill.gov_id %}" class="bill-card">
-            <div class="bill-card-header">
-                <span class="bill-type-badge badge-{{ bill.type|lower }}">{{ bill.type }}</span>
-                <span class="bill-congress">{% congress_ordinal bill.gov_id %} Congress</span>
-                <span class="bill-date">{{ bill.date|date:"M j, Y" }}</span>
-            </div>
-            <h3 class="bill-card-title">{{ bill.title }}</h3>
-            {% if bill.on_topic_ranking is not None %}
-            <div class="bill-card-score">
-                <div class="score-bar">
-                    <div class="score-bar-fill {% score_color bill.on_topic_ranking %}" style="width: {{ bill.on_topic_ranking }}0%"></div>
-                </div>
-                <span class="score-number {% score_color bill.on_topic_ranking %}">{{ bill.on_topic_ranking }}<span class="score-denominator">/10</span></span>
-            </div>
-            {% endif %}
-            {% if bill.text_summary %}
-            <p class="bill-card-summary">{{ bill.text_summary|truncatewords:30 }}</p>
-            {% endif %}
-            {% if bill.topics.all %}
-            <div class="bill-card-topics">
-                {% for topic in bill.topics.all|slice:":3" %}
-                <span class="topic-pill">{{ topic.name }}</span>
-                {% endfor %}
-                {% with remaining=bill.topics.all|length %}
-                {% if remaining > 3 %}
-                <span class="topic-pill topic-pill-more">+{{ remaining|add:"-3" }}</span>
-                {% endif %}
-                {% endwith %}
-            </div>
-            {% endif %}
-        </a>
-        {% endfor %}
-    </div>
+    {% include "partials/bill_table.html" with bills=paginated_bills %}
 
     {% include "partials/pagination.html" with page_obj=paginated_bills %}
 </section>
