@@ -1,12 +1,7 @@
-import json
-import re
-
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.core.serializers.json import DjangoJSONEncoder
 from django.db.models import Avg, Count, Min, Max
-from django.db.models.functions import TruncMonth
 from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
@@ -37,59 +32,19 @@ ALLOWED_SORTS = {
 }
 
 
-def get_stats_cached() -> object:
-    key = 'index_stats_v3'
-    index_stats = cache.get(key)
-    if not index_stats:
-        average_score_by_month = Bill.objects \
-            .filter(on_topic_ranking__isnull=False) \
-            .annotate(year=TruncMonth('date')) \
-            .values('year') \
-            .annotate(score=Avg('on_topic_ranking')) \
-            .order_by('year') \
-            .values('year', 'score')
-
-        average_score_by_month_json = json.dumps(list(average_score_by_month), cls=DjangoJSONEncoder)
-
-        index_stats = {
-            'count_bills': Bill.objects.count(),
-            'count_bills_analyzed': Bill.objects.filter(last_analyzed_at__isnull=False).count(),
-            'average_score_by_month_json': average_score_by_month_json,
-        }
-        cache.set(key, index_stats, 300)
-
-    return index_stats
+def get_stats_cached():
+    """Read-only from cache. Populated by warm_caches script."""
+    return cache.get('index_stats_v3')
 
 
 def get_trending_topics_cached():
-    key = 'trending_topics_v1'
-    result = cache.get(key)
-    if not result:
-        from datetime import timedelta
-        from django.utils import timezone
-        cutoff = timezone.now() - timedelta(days=90)
-        result = list(
-            BillTopic.objects.filter(
-                related_bills__last_analyzed_at__gte=cutoff
-            ).annotate(
-                recent_count=Count('related_bills', distinct=True)
-            ).order_by('-recent_count')[:12]
-        )
-        cache.set(key, result, 3600)
-    return result
+    """Read-only from cache. Populated by warm_caches script."""
+    return cache.get('trending_topics_v1') or []
 
 
 def get_congress_sessions_cached():
-    key = 'congress_sessions_v1'
-    result = cache.get(key)
-    if not result:
-        from django.db.models import Func, CharField
-        rows = Bill.objects.filter(gov='USA').annotate(
-            congress=Func('gov_id', function='SUBSTRING', template="%(function)s(%(expressions)s FROM '^[0-9]+')", output_field=CharField())
-        ).values_list('congress', flat=True).distinct()
-        result = sorted({int(c) for c in rows if c}, reverse=True)
-        cache.set(key, result, 86400)
-    return result
+    """Read-only from cache. Populated by warm_caches script."""
+    return cache.get('congress_sessions_v1') or []
 
 
 def index(request):
@@ -374,24 +329,7 @@ def congress_page(request, congress_number: int):
 
 
 def stats_page(request):
-    stats = get_stats_cached()
-
-    # Per-congress breakdown
-    congress_breakdown_key = 'stats_congress_breakdown'
-    congress_breakdown = cache.get(congress_breakdown_key)
-    if congress_breakdown is None:
-        from django.db.models import Q, Func, CharField
-        rows = Bill.objects.filter(gov='USA').annotate(
-            congress=Func('gov_id', function='SUBSTRING', template="%(function)s(%(expressions)s FROM '^[0-9]+')", output_field=CharField())
-        ).values('congress').annotate(
-            total=Count('id'),
-            analyzed=Count('id', filter=Q(last_analyzed_at__isnull=False)),
-            avg_score=Avg('on_topic_ranking', filter=Q(on_topic_ranking__isnull=False)),
-        ).order_by('-congress')
-        congress_breakdown = [r for r in rows if r['congress']]
-        cache.set(congress_breakdown_key, congress_breakdown, 3600)
-
     return render(request, 'stats.html', {
-        'stats': stats,
-        'congress_breakdown': congress_breakdown,
+        'stats': get_stats_cached(),
+        'congress_breakdown': cache.get('stats_congress_breakdown') or [],
     })
