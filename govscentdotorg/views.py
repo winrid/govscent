@@ -33,18 +33,27 @@ ALLOWED_SORTS = {
 
 
 def get_stats_cached():
-    """Read-only from cache. Populated by warm_caches script."""
-    return cache.get('index_stats_v3')
+    from govscentdotorg.services.cache_warmer import warm_index_stats
+    result = cache.get('index_stats_v3')
+    if not result:
+        result = warm_index_stats()
+    return result
 
 
 def get_trending_topics_cached():
-    """Read-only from cache. Populated by warm_caches script."""
-    return cache.get('trending_topics_v1') or []
+    from govscentdotorg.services.cache_warmer import warm_trending_topics
+    result = cache.get('trending_topics_v1')
+    if not result:
+        result = warm_trending_topics()
+    return result or []
 
 
 def get_congress_sessions_cached():
-    """Read-only from cache. Populated by warm_caches script."""
-    return cache.get('congress_sessions_v1') or []
+    from govscentdotorg.services.cache_warmer import warm_congress_sessions
+    result = cache.get('congress_sessions_v1')
+    if not result:
+        result = warm_congress_sessions()
+    return result or []
 
 
 def index(request):
@@ -322,7 +331,11 @@ def congress_page(request, congress_number: int):
 
 
 def stats_page(request):
+    from govscentdotorg.services.cache_warmer import warm_congress_breakdown
+    breakdown = cache.get('stats_congress_breakdown')
+    if not breakdown:
+        breakdown = warm_congress_breakdown()
     return render(request, 'stats.html', {
         'stats': get_stats_cached(),
-        'congress_breakdown': cache.get('stats_congress_breakdown') or [],
+        'congress_breakdown': breakdown or [],
     })
