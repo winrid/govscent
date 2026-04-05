@@ -27,7 +27,7 @@
     <h2 class="section-heading">Trending Topics</h2>
     <div class="trending-topics-scroll">
         {% for topic in trending_topics %}
-        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-chip">
+        <a href="{% url 'topic_page' topic.id %}" class="topic-chip">
             {{ topic.name }}
             <span class="topic-chip-count">{{ topic.recent_count }}</span>
         </a>

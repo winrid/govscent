@@ -69,7 +69,7 @@
             <h3 class="sidebar-heading">Topics</h3>
             <div class="topic-chips">
                 {% for topic in bill.topics.all %}
-                <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-chip">
+                <a href="{% url 'topic_page' topic.id %}" class="topic-chip">
                     {{ topic.name }}
                     {% if topic.get_bill_count_cached > 1 %}
                     <span class="topic-chip-count">{{ topic.get_bill_count_cached }}</span>

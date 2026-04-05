@@ -23,7 +23,7 @@
     <h2 class="section-heading">Most Popular Topics</h2>
     <div class="topic-card-grid">
         {% for topic in popular_topics %}
-        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-card">
+        <a href="{% url 'topic_page' topic.id %}" class="topic-card">
             <h3 class="topic-card-name">{{ topic.name }}</h3>
             <div class="topic-card-stats">
                 <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
@@ -50,7 +50,7 @@
 
     <div class="topic-card-grid">
         {% for topic in paginated_data %}
-        <a href="{% url 'topic_page_with_slug' topic.id topic.name %}" class="topic-card">
+        <a href="{% url 'topic_page' topic.id %}" class="topic-card">
             <h3 class="topic-card-name">{{ topic.name }}</h3>
             <div class="topic-card-stats">
                 <span class="topic-card-count">{{ topic.bill_count }} bill{{ topic.bill_count|pluralize:",s" }}</span>
