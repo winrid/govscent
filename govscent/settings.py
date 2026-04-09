@@ -86,9 +86,15 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     } if DEBUG else {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
-        'MAX_ENTRIES': 50_000
+        # Per-worker in-memory cache. Much faster than the file-based cache
+        # which did a glob() + atomic tempfile write on every cache.set() and
+        # showed up as a meaningful chunk of CPU in py-spy profiles.
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'govscent-default',
+        'OPTIONS': {
+            'MAX_ENTRIES': 20_000,
+            'CULL_FREQUENCY': 4,
+        },
     }
 }
 
@@ -106,6 +112,11 @@ DATABASES = {
        'PASSWORD': os.environ['DB_PASSWORD'],
        'HOST': os.environ['DB_HOST'],
        'PORT': os.environ['DB_PORT'],
+       # Persistent connections - without this Django opens a fresh psycopg2
+       # connection per request, which py-spy showed was the single largest
+       # self-time in the profile (~30% of active CPU across workers).
+       'CONN_MAX_AGE': 300,
+       'CONN_HEALTH_CHECKS': True,
    }
 }
 

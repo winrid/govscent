@@ -126,9 +126,25 @@ def get_related_bills_cached(bill):
 
 
 def bill_page(request, gov, gov_id):
-    bill = Bill.objects.filter(gov__exact=gov, gov_id__exact=gov_id).prefetch_related('topics').first()
+    # Check the rendered-HTML cache before loading the bill so we can skip
+    # pulling the massive `text` column from Postgres on cache hits (which
+    # are the common case for bot traffic).
+    bill_html_cache_key = gov + gov_id
+    force_refresh = request.GET.get('no_cache', '') == 'True'
+    bill_html = None if force_refresh else cache.get(bill_html_cache_key)
+
+    bill_qs = Bill.objects.filter(gov__exact=gov, gov_id__exact=gov_id).prefetch_related('topics')
+    if bill_html is not None:
+        bill_qs = bill_qs.defer(
+            'text', 'last_analyze_response', 'final_analyze_response', 'last_analyze_error'
+        )
+    bill = bill_qs.first()
     if not bill:
         raise Http404
+
+    if bill_html is None:
+        bill_html = us_bill_text_to_html(bill.text)
+        cache.set(bill_html_cache_key, bill_html, 3600)
 
     related_bills = get_related_bills_cached(bill)
 
@@ -139,12 +155,6 @@ def bill_page(request, gov, gov_id):
         ).exclude(gov_id=gov_id).order_by('-date').only(
             'gov_id', 'title', 'date', 'gov'
         )
-
-    bill_html_cache_key = gov + gov_id
-    bill_html = cache.get(bill_html_cache_key)
-    if bill_html is None or request.GET.get('no_cache', '') == 'True':
-        bill_html = us_bill_text_to_html(bill.text)
-        cache.set(bill_html_cache_key, bill_html, 3600)
 
     return render(request, 'bill.html', {
         'bill': bill,
