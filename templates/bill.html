@@ -67,16 +67,16 @@
         {% if bill.topics.all %}
         <div class="sidebar-section">
             <h3 class="sidebar-heading">Topics</h3>
-            <div class="topic-chips">
+            <ul class="topic-list">
                 {% for topic in bill.topics.all %}
-                <a href="{% url 'topic_page' topic.id %}" class="topic-chip">
-                    {{ topic.name }}
+                <li>
+                    <a href="{% url 'topic_page' topic.id %}">{{ topic.name }}</a>
                     {% if topic.get_bill_count_cached > 1 %}
-                    <span class="topic-chip-count">{{ topic.get_bill_count_cached }}</span>
+                    <span class="topic-list-count">{{ topic.get_bill_count_cached }}</span>
                     {% endif %}
-                </a>
+                </li>
                 {% endfor %}
-            </div>
+            </ul>
         </div>
         {% endif %}
 

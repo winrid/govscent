@@ -395,6 +395,36 @@ h3 { font-size: 18px; font-weight: 600; }
     gap: 8px;
 }
 
+.topic-list {
+    list-style: disc;
+    padding-left: 20px;
+    margin: 0;
+
+    li {
+        font-size: 13px;
+        line-height: 1.5;
+        margin-bottom: 4px;
+        overflow-wrap: anywhere;
+    }
+
+    a {
+        color: @text-primary;
+        text-decoration: none;
+
+        &:hover {
+            color: @navy;
+            text-decoration: underline;
+        }
+    }
+
+    .topic-list-count {
+        color: @text-tertiary;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+}
+
 // ============================================
 // Filter Bar
 // ============================================
