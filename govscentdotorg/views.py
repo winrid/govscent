@@ -1,7 +1,7 @@
 from django.contrib.postgres.search import SearchVector, SearchQuery, SearchRank
 from django.core.cache import cache
 from django.core.paginator import Paginator
-from django.db.models import Avg, Count, Min, Max
+from django.db.models import Avg, Count, Min, Max, Q
 from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
@@ -189,7 +189,6 @@ def topic_page(request, bill_topic_id: str, slug=''):
     stats_key = f'topic-stats:{bill_topic_id}'
     topic_stats = cache.get(stats_key)
     if topic_stats is None:
-        from django.db.models import Q
         agg = Bill.objects.filter(
             topics__in=[bill_topic], on_topic_ranking__isnull=False
         ).aggregate(
@@ -270,9 +269,9 @@ def bill_search_page(request):
     results = Bill.objects.none()
     if query:
         results = Bill.objects.filter(
+            Q(title__icontains=query) | Q(gov_id__icontains=query),
             gov='USA',
-            title__icontains=query,
-            last_analyzed_at__isnull=False
+            last_analyzed_at__isnull=False,
         ).prefetch_related('topics').order_by('-date')
 
     paginator = Paginator(results, 24)
@@ -309,7 +308,6 @@ def congress_page(request, congress_number: int):
     if cached:
         congress_stats, date_range = cached
     else:
-        from django.db.models import Q
         all_bills = Bill.objects.filter(gov='USA', gov_id__startswith=str(congress_number))
         agg = all_bills.aggregate(
             total=Count('id'),
